@@ -61,6 +61,12 @@ const navItems = [
     badge: null,
   },
   {
+    name: 'Catalog Review',
+    href: '/catalog-review',
+    icon: FileCheck,
+    badge: null,
+  },
+  {
     name: 'Banks & Wallets',
     href: '/banks',
     icon: Wallet,

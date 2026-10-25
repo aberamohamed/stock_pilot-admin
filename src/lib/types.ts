@@ -210,6 +210,24 @@ export interface MedicineSummary {
   adoptedOrganizationsCount: number;
   createdAt: string;
   updatedAt: string;
+  /** "product" is one strength and form; "generic" is the parent name. */
+  catalogLevel?: 'generic' | 'product';
+  strength?: string | null;
+  dosageForm?: string | null;
+}
+
+/** A product waiting for the platform admin: created by a pharmacy, or paired by fallback in the split. */
+export interface CatalogReviewItem {
+  id: string;
+  name: string;
+  strength: string | null;
+  form: string | null;
+  kind: 'pharmacy' | 'flagged';
+  organizationName: string | null;
+  genericId: string | null;
+  adopters: number;
+  unitsInStock: number;
+  createdAt: string;
 }
 
 export interface MedicineDetail extends MedicineSummary {

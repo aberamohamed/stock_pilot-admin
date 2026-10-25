@@ -3,6 +3,7 @@ import {
   MedicineCategory,
   MedicineDetail,
   MedicineSummary,
+  CatalogReviewItem,
   OrganizationDetail,
   OrganizationSummary,
   PlatformAnalytics,
@@ -323,6 +324,15 @@ export const adminApi = {
     });
     return res.json();
   },
+
+  /** Products pharmacies created, and shared products the catalog split paired by fallback. */
+  catalogReviewQueue: (): Promise<CatalogReviewItem[]> => request<CatalogReviewItem[]>('/medicines/review'),
+
+  reviewProduct: (
+    id: string,
+    action: { action: 'approve' } | { action: 'promote' } | { action: 'retire' } | { action: 'merge'; intoId: string },
+  ): Promise<void> =>
+    request<void>(`/medicines/${encodeURIComponent(id)}/review`, { method: 'POST', body: JSON.stringify(action) }),
 
   getMedicine: async (id: string): Promise<MedicineDetail> => {
     return request<MedicineDetail>(`/medicines/${id}`);
