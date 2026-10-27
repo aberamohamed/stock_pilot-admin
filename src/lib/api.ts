@@ -14,7 +14,8 @@ import {
   UserSummary,
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1/platform-admin';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || 'https://api1.hibrethub.com/api/v1/platform-admin';
 
 export class ApiError extends Error {
   code: string;
