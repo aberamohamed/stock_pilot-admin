@@ -1,0 +1,51 @@
+Item Code,Code,SDD,Name*,Brand,Description,Country,Supplier,Order Unit,Dispense Unit,Factor,Purchasing Price,Selling Price*,Batch Number,Expiry Date,Quantity*,Low Stock,Over Stock,Tags
+EQ-001,12001,462983000,Digital Thermometer Infrared,Omron,Thermometer - Standard,Japan,Omron Healthcare,Piece,Piece,1,420,600,EQB-001,,30,6,75,Diagnostics
+EQ-002,12002,462983001,Surgical Gloves Size 7.5,SafeTouch,Latex Gloves - 7.5,China,MedPlus,Box,Pair,50,320,9,EQB-002,2029-06-30,60,12,150,Medical Supplies
+EQ-003,12003,462983002,Surgical Gloves Size 7.0,SafeTouch,Latex Gloves - 7.0,China,MedPlus,Box,Pair,50,320,9,EQB-003,2029-06-30,50,10,125,Medical Supplies
+EQ-004,12004,462983003,Surgical Gloves Size 8.0,SafeTouch,Latex Gloves - 8.0,China,MedPlus,Box,Pair,50,320,9,EQB-004,2029-06-30,45,9,112,Medical Supplies
+EQ-005,12005,462983004,Examination Gloves Medium Latex-Free,KleenGuard,Nitrile Gloves - Medium,China,Kimberly-Clark,Box,Piece,100,290,4,EQB-005,2029-12-31,80,16,200,PPE
+EQ-006,12006,462983005,Blood Pressure Monitor Digital Arm,Beurer BM28,Sphygmomanometer - Universal,China,Beurer,Piece,Piece,1,1750,2400,EQB-006,,15,5,50,Diagnostics
+EQ-007,12007,462983006,Blood Pressure Monitor Aneroid with Cuff,Riester,Manual Sphygmomanometer - Adult,Germany,Riester Germany,Piece,Piece,1,850,1200,EQB-007,,20,5,50,Diagnostics
+EQ-008,12008,462983007,Dual Head Stethoscope Classic,Littmann Select,Stethoscope - Adult,China,3M Littmann,Piece,Piece,1,950,1450,EQB-008,,25,5,62,Diagnostics
+EQ-009,12009,462983008,Disposable Syringe 2ml with Needle,BD Dispos,Syringe 2ml - 2ml / 23G,China,BD,Box,Piece,100,260,4,EQB-009,2030-01-01,90,18,225,Consumables
+EQ-010,12010,462983009,Disposable Syringe 5ml with Needle,BD Dispos,Syringe 5ml - 5ml / 21G,China,BD,Box,Piece,100,300,5,EQB-010,2030-01-01,110,22,275,Consumables
+EQ-011,12011,462983010,Disposable Syringe 10ml with Needle,BD Dispos,Syringe 10ml - 10ml / 21G,China,BD,Box,Piece,100,380,6,EQB-011,2030-01-01,70,14,175,Consumables
+EQ-012,12012,462983011,Insulin Syringe 1ml U-100 30G,BD Micro-Fine,Insulin Syringe - 1ml / 30G,China,BD,Box,Piece,100,340,5.5,EQB-012,2029-08-31,85,17,212,Consumables
+EQ-013,12013,462983012,IV Cannula 18G Green,Vasofix,Intravenous Catheter - 18G,China,B. Braun,Box,Piece,50,380,12,EQB-013,2029-03-31,55,11,137,Infusion
+EQ-014,12014,462983013,IV Cannula 20G Pink,Vasofix,Intravenous Catheter - 20G,China,B. Braun,Box,Piece,50,380,12,EQB-014,2029-03-31,65,13,162,Infusion
+EQ-015,12015,462983014,IV Cannula 22G Blue,Vasofix,Intravenous Catheter - 22G,China,B. Braun,Box,Piece,50,380,12,EQB-015,2029-03-31,60,12,150,Infusion
+EQ-016,12016,462983015,IV Infusion Giving Set with Filter,Intrafix,IV Infusion Set - Standard,China,B. Braun,Box,Piece,25,220,15,EQB-016,2029-05-15,80,16,200,Infusion
+EQ-017,12017,462983016,Blood Glucose Meter Kit,Accu-Chek Active,Glucometer - Kit,China,Roche,Piece,Piece,1,1100,1600,EQB-017,,20,5,50,Diagnostics
+EQ-018,12018,462983017,Blood Glucose Test Strips 50s,Accu-Chek Active,Glucose Strips - 50 Strips,China,Roche,Box,Box,1,680,950,EQB-018,2027-11-30,45,9,112,Diagnostics
+EQ-019,12019,462983018,Blood Lancets Sterile 100s,Accu-Chek Soft,Sterile Lancets - 28G,China,Roche,Box,Piece,100,150,2.5,EQB-019,2030-01-01,60,12,150,Diagnostics
+EQ-020,12020,462983019,Crepe Bandage 10cm x 4.5m,Tubigrip,Elastic Bandage - 10cm,China,Mölnlycke,Roll,Roll,1,35,60,EQB-020,,120,24,300,Wound Care
+EQ-021,12021,462983020,Crepe Bandage 7.5cm x 4.5m,Tubigrip,Elastic Bandage - 7.5cm,China,Mölnlycke,Roll,Roll,1,28,50,EQB-021,,100,20,250,Wound Care
+EQ-022,12022,462983021,Sterile Gauze Swabs 10x10cm 100s,Surgispon,Gauze Swabs - 10x10cm,China,Aegis,Pack,Piece,100,140,2.5,EQB-022,2029-04-30,75,15,187,Wound Care
+EQ-023,12023,462983022,Adhesive Surgical Tape Micropore 2.5cm,3M Micropore,Paper Tape - 2.5cm x 9.1m,USA,3M,Box,Roll,12,340,40,EQB-023,,50,10,125,Wound Care
+EQ-024,12024,462983023,Adhesive Plaster Strips 100s,Hansaplast,First Aid Bandages - Standard,China,Beiersdorf,Box,Piece,100,85,1.5,EQB-024,2029-10-31,90,18,225,Wound Care
+EQ-025,12025,462983024,Cotton Wool Roll Absorbent 500g,AbsorbCotton,Cotton Wool - 500g,China,MedPlus,Roll,Roll,1,110,175,EQB-025,,60,12,150,Wound Care
+EQ-026,12026,462983025,Surgical Face Mask 3-Ply 50s,MedProtect,Face Mask 3-Ply - Adult,China,SafeLife,Box,Piece,50,120,3.5,EQB-026,2029-01-01,150,30,375,PPE
+EQ-027,12027,462983026,N95 Respirator Particulate Mask 20s,3M 8210,N95 Mask - Standard,USA,3M,Box,Piece,20,380,28,EQB-027,2028-12-31,40,8,100,PPE
+EQ-028,12028,462983027,Pulse Oximeter Fingertip LED,ChoiceMMed,Fingertip Pulse Oximeter - Universal,China,ChoiceMMed,Piece,Piece,1,650,980,EQB-028,,35,7,87,Diagnostics
+EQ-029,12029,462983028,Compressor Nebulizer Machine,Omron CompAIR,Nebulizer System - Adult / Pediatric,Japan,Omron,Piece,Piece,1,1950,2800,EQB-029,,12,5,50,Respiratory
+EQ-030,12030,462983029,Nebulizer Kit with Mask Adult,Salter Labs,Aerosol Mask Kit - Adult,China,Salter,Piece,Piece,1,95,160,EQB-030,,40,8,100,Respiratory
+EQ-031,12031,462983030,Foley Catheter 2-Way Silicone 16Fr,Rusch Gold,Urinary Catheter - 16Fr,China,Teleflex,Piece,Piece,1,65,110,EQB-031,2029-02-28,50,10,125,Urology
+EQ-032,12032,462983031,Foley Catheter 2-Way Silicone 18Fr,Rusch Gold,Urinary Catheter - 18Fr,China,Teleflex,Piece,Piece,1,65,110,EQB-032,2029-02-28,40,8,100,Urology
+EQ-033,12033,462983032,Urine Drainage Bag 2000ml with Valve,Unomedical,Urine Bag - 2000ml,China,ConvaTec,Piece,Piece,1,45,80,EQB-033,2029-08-31,80,16,200,Urology
+EQ-034,12034,462983033,Urine Test Strips 10 Parameters 100s,Combina 10M,Urinalysis Reagent - 10 Parameter,China,Human,Bottle,Strip,100,450,7.5,EQB-034,2027-09-30,30,6,75,Diagnostics
+EQ-035,12035,462983034,Pregnancy Test Strip Rapid HCG,One Step HCG,HCG Rapid Strip - Cassette,China,Wondfo,Box,Piece,50,210,8,EQB-035,2028-06-30,110,22,275,Diagnostics
+EQ-036,12036,462983035,HIV 1/2 Rapid Test Strip Kit 30s,Determine HIV,HIV Diagnostic Strip - 30 Tests,China,Abbott,Box,Test,30,480,25,EQB-036,2027-10-31,25,5,62,Diagnostics
+EQ-037,12037,462983036,H. Pylori Antigen Rapid Cassette,Bioline H.Pylori,H. Pylori Test - Cassette,China,Abbott,Box,Piece,25,350,22,EQB-037,2028-04-30,30,6,75,Diagnostics
+EQ-038,12038,462983037,Surgical Blade Carbon Steel No. 11,Swann-Morton,Scalpel Blade - No. 11,China,Swann-Morton,Box,Piece,100,180,3,EQB-038,2030-01-01,45,9,112,Surgical
+EQ-039,12039,462983038,Surgical Blade Carbon Steel No. 15,Swann-Morton,Scalpel Blade - No. 15,China,Swann-Morton,Box,Piece,100,180,3,EQB-039,2030-01-01,40,8,100,Surgical
+EQ-040,12040,462983039,Suture Silk Braided 2-0 with Needle,Ethicon Silk,Surgical Suture - 2-0 / 26mm,China,Johnson & Johnson,Box,Piece,12,240,30,EQB-040,2029-07-31,30,6,75,Surgical
+EQ-041,12041,462983040,Suture Chromic Catgut 2-0 with Needle,Ethicon Catgut,Absorbable Suture - 2-0 / 30mm,China,Johnson & Johnson,Box,Piece,12,290,36,EQB-041,2028-11-30,25,5,62,Surgical
+EQ-042,12042,462983041,Umbilical Cord Clamp Sterile,MedGyn,Cord Clamp - Standard,China,MedGyn,Box,Piece,100,160,2.5,EQB-042,2030-06-30,35,7,87,Obstetrics
+EQ-043,12043,462983042,Cervical Collar Hard Adjustable Adult,Philadelphia,Neck Brace - Adjustable,China,Ossur,Piece,Piece,1,480,750,EQB-043,,15,5,50,Orthopedics
+EQ-044,12044,462983043,Arm Sling Adjustable Mesh,Vissco Sling,Arm Support Sling - Universal,China,Vissco,Piece,Piece,1,140,240,EQB-044,,25,5,62,Orthopedics
+EQ-045,12045,462983044,Crutches Aluminum Underarm Medium Pair,Drive Medical,Underarm Crutches - Medium Pair,China,Drive,Pair,Pair,1,1200,1750,EQB-045,,10,5,50,Mobility
+EQ-046,12046,462983045,Hot Water Bag Rubber 2 Liter,Coronado,Hot Water Bottle - 2 Liter,China,Apex,Piece,Piece,1,110,190,EQB-046,,30,6,75,General
+EQ-047,12047,462983046,Ice Bag Fabric 9 Inch,Mueller Ice,Cold Therapy Pack - 9 Inch,China,Mueller,Piece,Piece,1,95,160,EQB-047,,25,5,62,General
+EQ-048,12048,462983047,Feeding Tube Nasogastric 16Fr,Levin Tube,NG Tube - 16Fr,China,ConvaTec,Piece,Piece,1,48,85,EQB-048,2029-01-31,40,8,100,Gastrointestinal
+EQ-049,12049,462983048,Suction Catheter Plain 14Fr,Argyle Suction,Suction Tube - 14Fr,China,Cardinal Health,Piece,Piece,1,35,65,EQB-049,2029-04-30,60,12,150,Respiratory
+EQ-050,12050,462983049,Oxygen Mask Adult with Tubing 2m,Intersurgical,Oxygen Mask - Adult,China,Intersurgical,Piece,Piece,1,65,110,EQB-050,,45,9,112,Respiratory

@@ -1,0 +1,51 @@
+Item Code,Code,SDD,Name*,Brand,Description,Country,Supplier,Order Unit,Dispense Unit,Factor,Purchasing Price,Selling Price*,Batch Number*,Expiry Date*,Quantity*,Low Stock,Over Stock,Tags
+MED-001,11001,323568005,Amoxicillin 500mg Capsule,Moxilen,Amoxicillin 500mg Capsule,UAE,Julphar,Box,Capsule,100,280,3.5,AMX-2026A,2028-06-30,50,10,125,Antibiotics
+MED-002,11002,387584000,Paracetamol 500mg Tablet,Panadol,Paracetamol 500mg Tablet,UK,GSK,Box,Tablet,100,110,1.5,PARA-2601,2029-01-15,120,24,300,Analgesics
+MED-003,11003,372567009,Metformin 500mg Tablet,Glucophage,Metformin HCl 500mg Tablet,Germany,Merck,Box,Tablet,100,180,2.5,MET-2602,2027-11-20,40,8,100,Antidiabetic
+MED-004,11004,387123000,Omeprazole 20mg Capsule,Losec,Omeprazole 20mg Capsule,UK,AstraZeneca,Box,Capsule,28,140,6,OMP-2603,2028-04-10,75,15,187,Gastrointestinal
+MED-005,11005,387258000,Azithromycin 500mg Tablet,Zithromax,Azithromycin 500mg Tablet,USA,Pfizer,Box,Tablet,3,85,40,AZI-2604,2027-09-30,90,18,225,Antibiotics
+MED-006,11006,372833007,Ciprofloxacin 500mg Tablet,Ciprobay,Ciprofloxacin 500mg Tablet,Germany,Bayer,Box,Tablet,10,80,12,CIP-2605,2028-08-15,50,10,125,Antibiotics
+MED-007,11007,387207008,Ibuprofen 400mg Tablet,Brufen,Ibuprofen 400mg Tablet,USA,Abbott,Box,Tablet,100,130,2,IBU-2606,2028-12-01,65,13,162,Analgesics
+MED-008,11008,387586003,Atorvastatin 20mg Tablet,Lipitor,Atorvastatin 20mg Tablet,USA,Pfizer,Box,Tablet,30,210,9,ATR-2607,2028-03-25,45,9,112,Cardiovascular
+MED-009,11009,386864001,Amlodipine 5mg Tablet,Norvasc,Amlodipine Besylate 5mg Tablet,USA,Pfizer,Box,Tablet,30,120,5,AML-2608,2028-05-12,55,11,137,Cardiovascular
+MED-010,11010,387265008,Cefteriaxone 1g Injection,Rocephin,Ceftriaxone Sodium 1g Injection,Germany,Roche,Vial,Vial,1,65,95,CEF-2609,2027-10-10,150,30,375,Antibiotics
+MED-011,11011,387494007,Diclofenac 50mg Tablet,Voltaren,Diclofenac Sodium 50mg Tablet,Germany,Novartis,Box,Tablet,100,140,2,DIC-2610,2028-07-22,80,16,200,Analgesics
+MED-012,11012,387431006,Metronidazole 400mg Tablet,Flagyl,Metronidazole 400mg Tablet,France,Sanofi,Box,Tablet,100,110,1.8,MET-2611,2028-02-18,70,14,175,Antiprotozoal
+MED-013,11013,396152005,Augmentin 625mg Tablet,Augmentin,Co-Amoxiclav 625mg Tablet,UK,GSK,Box,Tablet,14,280,25,AUG-2612,2027-08-30,85,17,212,Antibiotics
+MED-014,11014,386869006,Losartan 50mg Tablet,Cozaar,Losartan Potassium 50mg Tablet,USA,MSD,Box,Tablet,30,160,7,LOS-2613,2028-04-05,60,12,150,Cardiovascular
+MED-015,11015,323568014,Pantoprazole 40mg Tablet,Controloc,Pantoprazole 40mg Tablet,Turkey,Takeda,Box,Tablet,30,190,8,PAN-2614,2028-06-14,50,10,125,Gastrointestinal
+MED-016,11016,323568015,Cetirizine 10mg Tablet,Zyrtec,Cetirizine Dihydrochloride 10mg Tablet,Turkey,UCB,Box,Tablet,100,120,1.8,CET-2615,2029-02-28,95,19,237,Antihistamines
+MED-017,11017,323568016,Salbutamol 100mcg Inhaler,Ventolin,Salbutamol 100mcg Inhaler,UK,GSK,Piece,Piece,1,180,240,SAL-2616,2027-12-15,40,8,100,Respiratory
+MED-018,11018,323568017,Doxycycline 100mg Capsule,Vibramycin,Doxycycline Hyclate 100mg Capsule,USA,Pfizer,Box,Capsule,100,160,2.2,DOX-2617,2028-09-01,45,9,112,Antibiotics
+MED-019,11019,323568018,Tramadol 50mg Capsule,Ultram,Tramadol HCl 50mg Capsule,Turkey,Janssen,Box,Capsule,100,220,3.5,TRA-2618,2028-03-10,30,6,75,Analgesics
+MED-020,11020,323568019,Glibenclamide 5mg Tablet,Daonil,Glibenclamide 5mg Tablet,France,Sanofi,Box,Tablet,100,95,1.5,GLI-2619,2028-11-11,50,10,125,Antidiabetic
+MED-021,11021,323568020,Insulin Regular 100IU/ml Vial,Actrapid,Human Insulin 10ml Injection,Turkey,Novo Nordisk,Vial,Vial,1,320,420,INS-2620,2027-06-30,35,7,87,Antidiabetic
+MED-022,11022,323568021,Hydrochlorothiazide 25mg Tablet,Esidrex,Hydrochlorothiazide 25mg Tablet,Germany,Novartis,Box,Tablet,100,90,1.3,HCT-2621,2028-10-15,60,12,150,Cardiovascular
+MED-023,11023,323568022,Erythromycin 500mg Tablet,Erythrocin,Erythromycin Stearate 500mg Tablet,USA,Abbott,Box,Tablet,100,240,3.2,ERY-2622,2028-01-20,40,8,100,Antibiotics
+MED-024,11024,323568023,Albendazole 400mg Tablet,Zentel,Albendazole 400mg Tablet,UK,GSK,Box,Tablet,1,12,20,ALB-2623,2029-03-31,200,40,500,Anthelmintics
+MED-025,11025,323568024,Clotrimazole 1% Cream 20g,Canesten,Clotrimazole 20g Cream,Germany,Bayer,Tube,Tube,1,45,75,CLO-2624,2028-05-18,80,16,200,Antifungals
+MED-026,11026,323568025,Prednisolone 5mg Tablet,Predlone,Prednisolone 5mg Tablet,Turkey,EPHARM,Box,Tablet,100,110,1.6,PRE-2625,2028-08-08,50,10,125,Corticosteroids
+MED-027,11027,323568026,Furosemide 40mg Tablet,Lasix,Furosemide 40mg Tablet,France,Sanofi,Box,Tablet,100,95,1.4,FUR-2626,2028-04-20,55,11,137,Cardiovascular
+MED-028,11028,323568027,Paracetamol Syrup 120mg/5ml 100ml,Calpol,Paracetamol 100ml Syrup,UK,GSK,Bottle,Bottle,1,42,65,PAR-2627,2028-02-14,90,18,225,Analgesics
+MED-029,11029,323568028,Amoxicillin Suspension 125mg/5ml,Amoxil,Amoxicillin 100ml Suspension,UK,GSK,Bottle,Bottle,1,55,80,AMX-2628,2027-11-30,65,13,162,Antibiotics
+MED-030,11030,323568029,ORS (Oral Rehydration Salts) Sachet,Hydrate-ORS,Electrolytes Oral Powder 20.5g Powder,India,Cadila,Box,Sachet,50,140,4,ORS-2629,2029-06-30,120,24,300,Gastrointestinal
+MED-031,11031,323568030,Zinc Sulfate 20mg Tablet,Zinc-DT,Zinc Sulfate 20mg Tablet,Turkey,Universal,Box,Tablet,100,85,1.2,ZNC-2630,2028-09-15,70,14,175,Nutritional
+MED-032,11032,323568031,Multivitamin Syrup 100ml,Vitaplex,Vitamins Complex 100ml Syrup,Turkey,EPHARM,Bottle,Bottle,1,60,90,VIT-2631,2028-07-01,80,16,200,Vitamins
+MED-033,11033,323568032,Vitamin C 500mg Chewable Tablet,Cecon,Ascorbic Acid 500mg Tablet,USA,Abbott,Box,Tablet,100,130,1.8,VTC-2632,2029-04-12,110,22,275,Vitamins
+MED-034,11034,323568033,Folic Acid 5mg Tablet,Folvite,Folic Acid 5mg Tablet,USA,Pfizer,Box,Tablet,100,75,1.2,FOL-2633,2029-01-20,85,17,212,Vitamins
+MED-035,11035,323568034,Ferrous Sulfate 200mg Tablet,Fersolate,Ferrous Sulfate 200mg Tablet,UK,GSK,Box,Tablet,100,90,1.4,FER-2634,2028-12-10,75,15,187,Nutritional
+MED-036,11036,323568035,Ranitidine 150mg Tablet,Zantac,Ranitidine HCl 150mg Tablet,UK,GSK,Box,Tablet,100,130,1.8,RAN-2635,2027-10-05,40,8,100,Gastrointestinal
+MED-037,11037,323568036,Hydrocortisone 1% Ointment 15g,Cortaid,Hydrocortisone 15g Ointment,Turkey,Upjohn,Tube,Tube,1,48,75,HYD-2636,2028-03-15,60,12,150,Corticosteroids
+MED-038,11038,323568037,Loratadine 10mg Tablet,Claritin,Loratadine 10mg Tablet,Germany,Bayer,Box,Tablet,100,140,2,LOR-2637,2028-11-25,70,14,175,Antihistamines
+MED-039,11039,323568038,Ketoconazole 2% Cream 30g,Nizoral,Ketoconazole 30g Cream,Turkey,Janssen,Tube,Tube,1,70,110,KET-2638,2028-06-20,50,10,125,Antifungals
+MED-040,11040,323568039,Fluconazole 150mg Capsule,Diflucan,Fluconazole 150mg Capsule,USA,Pfizer,Box,Capsule,1,25,45,FLU-2639,2028-10-30,120,24,300,Antifungals
+MED-041,11041,323568040,Gentamicin 0.3% Eye Drops 10ml,Genticyn,Gentamicin Sulfate 10ml Drops,Turkey,Allergan,Bottle,Bottle,1,38,60,GEN-2640,2027-12-18,75,15,187,Ophthalmic
+MED-042,11042,323568041,Ciprofloxacin 0.3% Eye/Ear Drops,Ciloxan,Ciprofloxacin 5ml Drops,Germany,Novartis,Bottle,Bottle,1,42,70,CIP-2641,2028-04-22,65,13,162,Ophthalmic
+MED-043,11043,323568042,Bisacodyl 5mg Tablet,Dulcolax,Bisacodyl 5mg Tablet,Turkey,Boehringer,Box,Tablet,100,110,1.5,BIS-2642,2028-08-30,45,9,112,Gastrointestinal
+MED-044,11044,323568043,Loperamide 2mg Capsule,Imodium,Loperamide HCl 2mg Capsule,Turkey,Janssen,Box,Capsule,100,130,1.8,LOP-2643,2028-05-05,50,10,125,Gastrointestinal
+MED-045,11045,323568044,Diazepam 5mg Tablet,Valium,Diazepam 5mg Tablet,Germany,Roche,Box,Tablet,100,160,2.5,DIA-2644,2028-02-12,20,5,50,Psychotropics
+MED-046,11046,323568045,Phenobarbital 30mg Tablet,Luminal,Phenobarbital 30mg Tablet,Germany,Bayer,Box,Tablet,100,120,1.8,PHE-2645,2028-09-08,30,6,75,Anticonvulsants
+MED-047,11047,323568046,Carbamazepine 200mg Tablet,Tegretol,Carbamazepine 200mg Tablet,Germany,Novartis,Box,Tablet,100,220,3.2,CAR-2646,2028-07-19,40,8,100,Anticonvulsants
+MED-048,11048,323568047,Coartem 20/120mg Tablet,Coartem,Artemether / Lumefantrine 20/120mg Tablet,Germany,Novartis,Box,Tablet,24,140,8.5,COA-2647,2027-10-15,80,16,200,Antimalarials
+MED-049,11049,323568048,Quinine Sulfate 300mg Tablet,Quinine,Quinine Sulfate 300mg Tablet,Turkey,EPHARM,Box,Tablet,100,260,3.8,QUI-2648,2028-01-30,25,5,62,Antimalarials
+MED-050,11050,323568049,Dexamethasone 4mg/ml Injection,Decadron,Dexamethasone Sodium 1ml Injection,USA,MSD,Box,Ampoule,10,95,15,DEX-2650,2027-11-15,60,12,150,Corticosteroids

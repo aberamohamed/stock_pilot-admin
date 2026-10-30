@@ -360,6 +360,13 @@ export const adminApi = {
     });
   },
 
+  /** Bulk-adds catalog items from an .xlsx/.csv file; rows already in the catalog are skipped. */
+  importItemTemplates: (input: { fileName: string; base64: string; defaultType: string }) =>
+    request<{ total: number; imported: number; skipped: number }>('/medicines/import', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
   addMedicinePackage: async (medicineId: string, pkg: Record<string, unknown>): Promise<unknown> => {
     return request(`/medicines/${medicineId}/packages`, {
       method: 'POST',

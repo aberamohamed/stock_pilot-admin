@@ -11,6 +11,7 @@ import {
   FileCheck,
   FolderTree,
   Pill,
+  FileSpreadsheet,
   Wallet,
   Sparkles,
   LogOut,
@@ -58,6 +59,12 @@ const navItems = [
     name: 'Master Medicines',
     href: '/medicines',
     icon: Pill,
+    badge: null,
+  },
+  {
+    name: 'Item Templates',
+    href: '/item-templates',
+    icon: FileSpreadsheet,
     badge: null,
   },
   {
