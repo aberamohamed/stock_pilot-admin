@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Pagination } from '@/components/pagination';
 import { adminApi } from '@/lib/api';
 import { OrganizationDetail, OrganizationSummary } from '@/lib/types';
 import {
@@ -10,8 +11,6 @@ import {
   MapPin,
   Phone,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
   Edit2,
   X,
   Store,
@@ -28,7 +27,7 @@ export default function OrganizationsPage() {
   const [planFilter, setPlanFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(10);
 
   // Selected organization for right table
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
@@ -36,7 +35,7 @@ export default function OrganizationsPage() {
 
   // Query: Organizations list
   const { data, isLoading } = useQuery({
-    queryKey: ['organizations', searchTerm, businessTypeFilter, planFilter, statusFilter, page],
+    queryKey: ['organizations', searchTerm, businessTypeFilter, planFilter, statusFilter, page, pageSize],
     queryFn: () =>
       adminApi.listOrganizations({
         search: searchTerm || undefined,
@@ -50,7 +49,6 @@ export default function OrganizationsPage() {
 
   const orgsList = data?.data || [];
   const totalCount = data?.meta?.total || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Active organization: either explicitly selected or first from current page
   const activeOrgId = selectedOrgId || orgsList[0]?.id || null;
@@ -313,31 +311,7 @@ export default function OrganizationsPage() {
                 </table>
               </div>
 
-              {/* Pagination */}
-              <div className="px-4 py-3 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between text-xs text-slate-400">
-                <span>
-                  Showing {page * pageSize + 1}–{Math.min((page + 1) * pageSize, totalCount)} of {totalCount}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                    className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-2">
-                    {page + 1} / {totalPages || 1}
-                  </span>
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                    disabled={page >= totalPages - 1}
-                    className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              <Pagination total={totalCount} page={page + 1} pageSize={pageSize} onPage={(p) => setPage(p - 1)} onPageSize={setPageSize} />
             </>
           )}
         </div>

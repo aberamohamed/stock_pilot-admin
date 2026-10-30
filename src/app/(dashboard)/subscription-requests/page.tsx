@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePagination } from '@/components/pagination';
 import { adminApi } from '@/lib/api';
 import { SubscriptionUpgradeRequest } from '@/lib/types';
 import {
@@ -69,6 +70,7 @@ export default function SubscriptionRequestsPage() {
       r.paymentReference.toLowerCase().includes(term)
     );
   });
+  const { pageRows, footer } = usePagination(filtered);
 
   return (
     <div className="space-y-6">
@@ -143,7 +145,7 @@ export default function SubscriptionRequestsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
-                {filtered.map((req) => (
+                {pageRows.map((req) => (
                   <tr key={req.id} className="hover:bg-slate-800/30 transition-colors">
                     {/* Organization */}
                     <td className="px-5 py-4">
@@ -262,6 +264,7 @@ export default function SubscriptionRequestsPage() {
               </tbody>
             </table>
           </div>
+          {footer}
         </div>
       )}
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Pagination } from '@/components/pagination';
 import { api } from '@/lib/api';
 import { MedicineSummary, MedicineDetail } from '@/lib/types';
 import {
@@ -16,8 +17,6 @@ import {
   Tag,
   FileText,
   Boxes,
-  ChevronLeft,
-  ChevronRight,
   Activity,
 } from 'lucide-react';
 
@@ -31,7 +30,7 @@ export default function MedicinesPage() {
   const [productType, setProductType] = useState<string>('all');
   const [rxFilter, setRxFilter] = useState<'all' | 'true' | 'false'>('all');
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const [limit, setLimit] = useState(10);
 
   // Modals & Drawers
   const [selectedMedicineId, setSelectedMedicineId] = useState<string | null>(null);
@@ -75,7 +74,7 @@ export default function MedicinesPage() {
 
   // Query: Medicines List
   const { data: medicinesResult, isLoading } = useQuery({
-    queryKey: ['medicines', search, selectedCategory, marketStatus, productType, rxFilter, page],
+    queryKey: ['medicines', search, selectedCategory, marketStatus, productType, rxFilter, page, limit],
     queryFn: () =>
       api.listMedicines({
         search: search || undefined,
@@ -235,7 +234,6 @@ export default function MedicinesPage() {
 
   const medicines = medicinesResult?.data || [];
   const meta = medicinesResult?.meta || { total: 0, limit: 20, offset: 0 };
-  const totalPages = Math.ceil((meta.total || 0) / limit);
 
   return (
     <div className="space-y-6">
@@ -505,35 +503,7 @@ export default function MedicinesPage() {
           </div>
         )}
 
-        {/* Pagination footer */}
-        <div className="p-4 border-t border-zinc-800/80 bg-zinc-950 flex items-center justify-between text-xs text-zinc-400">
-          <div>
-            Showing <strong className="text-white">{meta.offset + 1}</strong> to{' '}
-            <strong className="text-white">
-              {Math.min(meta.offset + limit, meta.total)}
-            </strong>{' '}
-            of <strong className="text-white">{meta.total}</strong> master medicines
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-800 transition"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="px-2">
-              Page {page} of {totalPages || 1}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-800 transition"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <Pagination total={meta.total || 0} page={page} pageSize={limit} onPage={setPage} onPageSize={setLimit} />
       </div>
 
       {/* Detail & Packages Drawer Modal */}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePagination } from '@/components/pagination';
 import { api } from '@/lib/api';
 import { MedicineCategory } from '@/lib/types';
 import {
@@ -148,6 +149,7 @@ export default function CategoriesPage() {
 
     return matchesSearch && matchesStatus;
   });
+  const { pageRows, footer } = usePagination(filteredCategories);
 
   // Calculate quick metrics
   const totalCategories = categories.length;
@@ -278,7 +280,7 @@ export default function CategoriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60">
-                {filteredCategories.map((cat) => (
+                {pageRows.map((cat) => (
                   <tr key={cat.value} className="hover:bg-zinc-800/30 transition-colors">
                     <td className="px-6 py-4 font-medium text-white flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">
@@ -337,6 +339,7 @@ export default function CategoriesPage() {
                 ))}
               </tbody>
             </table>
+            {footer}
           </div>
         )}
       </div>

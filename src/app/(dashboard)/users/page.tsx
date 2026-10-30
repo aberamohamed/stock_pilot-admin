@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Pagination } from '@/components/pagination';
 import { adminApi } from '@/lib/api';
 import { UserDetail, UserSummary } from '@/lib/types';
 import {
@@ -15,8 +16,6 @@ import {
   X,
   CheckCircle2,
   Copy,
-  ChevronLeft,
-  ChevronRight,
   UserCheck,
   UserX,
 } from 'lucide-react';
@@ -27,7 +26,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [page, setPage] = useState(0);
-  const pageSize = 15;
+  const [pageSize, setPageSize] = useState(10);
 
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
@@ -36,7 +35,7 @@ export default function UsersPage() {
   const [copied, setCopied] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['users', searchTerm, roleFilter, statusFilter, page],
+    queryKey: ['users', searchTerm, roleFilter, statusFilter, page, pageSize],
     queryFn: () =>
       adminApi.listUsers({
         search: searchTerm || undefined,
@@ -89,7 +88,6 @@ export default function UsersPage() {
 
   const usersList = data?.data || [];
   const totalCount = data?.meta?.total || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <div className="space-y-6">
@@ -315,34 +313,7 @@ export default function UsersPage() {
             </table>
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="px-5 py-3 bg-slate-950/70 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-              <span>
-                Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, totalCount)} of{' '}
-                {totalCount} users
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={page === 0}
-                  onClick={() => setPage(page - 1)}
-                  className="p-1.5 rounded-lg border border-slate-800 disabled:opacity-40 hover:bg-slate-800 text-slate-300"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="font-medium text-slate-300">
-                  Page {page + 1} of {totalPages}
-                </span>
-                <button
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage(page + 1)}
-                  className="p-1.5 rounded-lg border border-slate-800 disabled:opacity-40 hover:bg-slate-800 text-slate-300"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination total={totalCount} page={page + 1} pageSize={pageSize} onPage={(p) => setPage(p - 1)} onPageSize={setPageSize} />
         </div>
       )}
 
