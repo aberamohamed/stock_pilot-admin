@@ -77,9 +77,9 @@ export default function SubscriptionRequestsPage() {
       {/* Header & Status Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Subscription Upgrade Requests</h2>
+          <h2 className="text-xl font-bold text-white tracking-tight">Seat Payments</h2>
           <p className="text-xs text-slate-400 mt-1">
-            Review customer deposit slips and provider receipts to approve plan tier upgrades
+            Check each receipt against the amount (ETB 1,000 per seat) before approving
           </p>
         </div>
 
@@ -136,7 +136,7 @@ export default function SubscriptionRequestsPage() {
               <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
                   <th className="px-5 py-3.5">Organization</th>
-                  <th className="px-5 py-3.5">Requested Tier</th>
+                  <th className="px-5 py-3.5">Bought</th>
                   <th className="px-5 py-3.5">Payment Details</th>
                   <th className="px-5 py-3.5">Reference</th>
                   <th className="px-5 py-3.5">Status</th>
@@ -162,18 +162,17 @@ export default function SubscriptionRequestsPage() {
                       </div>
                     </td>
 
-                    {/* Transition */}
+                    {/* What was bought */}
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-slate-400 uppercase text-[11px]">
-                          {req.currentPlanId}
-                        </span>
-                        <span className="text-slate-600">&rarr;</span>
-                        <span className="font-bold text-indigo-400 uppercase text-[11px]">
-                          {req.targetPlanId}
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 capitalize">{req.billingCycle} billing</span>
+                      <p className="font-bold text-indigo-400 text-[11px] uppercase">
+                        {req.kind === 'activation' ? 'First payment' : req.kind === 'renewal' ? 'Renewal' : `${req.quantity} × ${req.kind}`}
+                        {req.branchName ? ` · ${req.branchName}` : ''}
+                      </p>
+                      <span className="text-[10px] text-slate-400">
+                        ETB {req.amount.toLocaleString()}
+                        {req.daysGranted ? ` · +${req.daysGranted} days` : ''}
+                        {req.usersGranted ? ` · +${req.usersGranted} user${req.usersGranted === 1 ? '' : 's'}` : ''}
+                      </span>
                     </td>
 
                     {/* Payment Info */}
@@ -297,8 +296,10 @@ export default function SubscriptionRequestsPage() {
                 <span className="font-mono text-white font-medium">{selectedReceipt.transactionId}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Target Plan:</span>
-                <span className="text-white font-semibold uppercase">{selectedReceipt.targetPlanId} ({selectedReceipt.billingCycle})</span>
+                <span className="text-slate-400">Bought:</span>
+                <span className="text-white font-semibold">
+                  {selectedReceipt.kind === 'activation' ? 'First payment' : selectedReceipt.kind === 'renewal' ? 'Renewal' : `${selectedReceipt.quantity} × ${selectedReceipt.kind}`} · ETB {selectedReceipt.amount.toLocaleString()}
+                </span>
               </div>
               {selectedReceipt.reviewNote && (
                 <div className="pt-2 border-t border-slate-800/80">
@@ -428,13 +429,15 @@ function ReviewDecisionModal({
             {isApprove ? (
               <>
                 Are you sure you want to approve{' '}
-                <strong className="text-white">{request.organizationName}</strong> for the{' '}
-                <strong className="text-indigo-400 uppercase">{request.targetPlanId}</strong> tier? This
-                will atomically activate their plan and expand their branch/user quotas.
+                <strong className="text-white">{request.organizationName}</strong> for{' '}
+                <strong className="text-indigo-400">
+                  {request.kind === 'activation' ? 'the first payment' : request.kind === 'renewal' ? 'a renewal' : `${request.quantity} ${request.kind}${request.quantity === 1 ? '' : 's'}`}
+                </strong>{' '}
+                (ETB {request.amount.toLocaleString()})? Their access and limits update right away.
               </>
             ) : (
               <>
-                Are you sure you want to reject the upgrade request for{' '}
+                Are you sure you want to reject the payment from{' '}
                 <strong className="text-white">{request.organizationName}</strong>? Please provide a
                 clear reason.
               </>
@@ -453,7 +456,7 @@ function ReviewDecisionModal({
               placeholder={
                 isApprove
                   ? 'e.g. Verified deposit on Telebirr portal, approved.'
-                  : 'e.g. Transaction ID was invalid or amount paid does not match plan price.'
+                  : 'e.g. Transaction ID was invalid or amount paid is not ETB 1,000 per seat.'
               }
               className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
             />

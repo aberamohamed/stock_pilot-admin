@@ -7,7 +7,6 @@ import { adminApi } from '@/lib/api';
 import {
   Building2,
   Users,
-  CreditCard,
   TrendingUp,
   FileCheck,
   Pill,
@@ -53,12 +52,12 @@ export default function OverviewPage() {
       href: '/organizations',
     },
     {
-      title: 'Estimated MRR',
-      value: `${analytics.subscriptions.estimatedMrr.toLocaleString()} ETB`,
-      subtitle: 'Monthly recurring revenue run rate',
+      title: 'Seat Revenue',
+      value: `${analytics.subscriptions.revenue.toLocaleString()} ETB`,
+      subtitle: 'Approved activation, branch and user payments',
       icon: DollarSign,
       color: 'from-emerald-600 to-teal-600',
-      href: '/plans',
+      href: '/subscription-requests',
     },
     {
       title: 'Lifetime GMV',
@@ -172,36 +171,6 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Plan Breakdown */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-emerald-400" />
-              <span>Tier Distribution</span>
-            </h3>
-            <span className="text-xs text-slate-400">Subscription Plans</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {['starter', 'basic', 'pro', 'enterprise'].map((tier) => {
-              const found = analytics.breakdowns.byPlan.find((p) => p.plan === tier);
-              const count = found ? found.count : 0;
-
-              return (
-                <div
-                  key={tier}
-                  className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-center"
-                >
-                  <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
-                    {tier}
-                  </p>
-                  <p className="text-xl font-bold text-white mt-1">{count}</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Tenants</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Recent Activity Grid */}
@@ -225,7 +194,7 @@ export default function OverviewPage() {
                 <div>
                   <p className="text-xs font-medium text-slate-200">{org.name}</p>
                   <p className="text-[11px] text-slate-500 capitalize">
-                    {org.businessType} &middot; Plan: {org.planId}
+                    {org.businessType}
                   </p>
                 </div>
                 <div className="text-right">
@@ -263,7 +232,7 @@ export default function OverviewPage() {
           </div>
 
           {analytics.recentUpgrades.length === 0 ? (
-            <p className="text-xs text-slate-500 py-6 text-center">No recent upgrade requests.</p>
+            <p className="text-xs text-slate-500 py-6 text-center">No recent payments.</p>
           ) : (
             <div className="divide-y divide-slate-800/80">
               {analytics.recentUpgrades.map((req) => (
@@ -271,9 +240,10 @@ export default function OverviewPage() {
                   <div>
                     <p className="text-xs font-medium text-slate-200">{req.organizationName}</p>
                     <p className="text-[11px] text-slate-500">
-                      {req.currentPlanId.toUpperCase()} &rarr;{' '}
-                      <span className="text-indigo-400 font-semibold">{req.targetPlanId.toUpperCase()}</span> via{' '}
-                      {req.paymentMethod.toUpperCase()}
+                      <span className="text-indigo-400 font-semibold">
+                        {req.kind === 'activation' ? 'First payment' : req.kind === 'renewal' ? 'Renewal' : `${req.quantity} × ${req.kind}`}
+                      </span>{' '}
+                      · ETB {req.amount.toLocaleString()} via {req.paymentMethod.toUpperCase()}
                     </p>
                   </div>
                   <div className="text-right">

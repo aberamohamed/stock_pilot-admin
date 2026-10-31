@@ -24,7 +24,6 @@ export default function OrganizationsPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [businessTypeFilter, setBusinessTypeFilter] = useState('');
-  const [planFilter, setPlanFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -35,12 +34,11 @@ export default function OrganizationsPage() {
 
   // Query: Organizations list
   const { data, isLoading } = useQuery({
-    queryKey: ['organizations', searchTerm, businessTypeFilter, planFilter, statusFilter, page, pageSize],
+    queryKey: ['organizations', searchTerm, businessTypeFilter, statusFilter, page, pageSize],
     queryFn: () =>
       adminApi.listOrganizations({
         search: searchTerm || undefined,
         businessType: businessTypeFilter || undefined,
-        planId: planFilter || undefined,
         status: statusFilter || undefined,
         limit: pageSize,
         offset: page * pageSize,
@@ -71,10 +69,9 @@ export default function OrganizationsPage() {
     },
   });
 
-  // Edit limits mutation
+  // Suspend or restore an organization
   const updateOrgMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<OrganizationSummary> }) =>
-      adminApi.updateOrganization(id, data),
+    mutationFn: ({ id, status }: { id: string; status: string }) => adminApi.updateOrganizationStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       queryClient.invalidateQueries({ queryKey: ['organization-detail', activeOrgId] });
@@ -131,21 +128,6 @@ export default function OrganizationsPage() {
         </select>
 
         <select
-          value={planFilter}
-          onChange={(e) => {
-            setPlanFilter(e.target.value);
-            setPage(0);
-          }}
-          className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
-        >
-          <option value="">All Plans</option>
-          <option value="starter">Starter</option>
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="enterprise">Enterprise</option>
-        </select>
-
-        <select
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value);
@@ -194,7 +176,7 @@ export default function OrganizationsPage() {
                   <thead className="bg-slate-950/80 text-[11px] text-slate-400 uppercase tracking-wider border-b border-slate-800">
                     <tr>
                       <th className="px-4 py-3">Organization</th>
-                      <th className="px-3 py-3">Vertical & Plan</th>
+                      <th className="px-3 py-3">Vertical</th>
                       <th className="px-3 py-3">Branches</th>
                       <th className="px-3 py-3">Status</th>
                       <th className="px-3 py-3 text-right">Edit</th>
@@ -248,12 +230,9 @@ export default function OrganizationsPage() {
                             </div>
                           </td>
 
-                          {/* Vertical & Plan */}
+                          {/* Vertical */}
                           <td className="px-3 py-3">
                             <div className="capitalize text-slate-300 font-medium">{org.businessType}</div>
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-indigo-400 uppercase mt-0.5 inline-block">
-                              {org.planId}
-                            </span>
                           </td>
 
                           {/* Branches count */}
@@ -261,9 +240,14 @@ export default function OrganizationsPage() {
                             <span className="inline-flex items-center gap-1 font-semibold text-slate-200">
                               <Store className="w-3 h-3 text-indigo-400" />
                               {org.branchCount}
-                              <span className="text-slate-500 font-normal">
-                                /{org.maxBranches ?? '∞'}
-                              </span>
+                              {org.branchCredits > 0 && (
+                                <span className="text-slate-500 font-normal">+{org.branchCredits} paid</span>
+                              )}
+                              {org.nextExpiry && (
+                                <span className="text-slate-500 font-normal">
+                                  · next ends {new Date(org.nextExpiry).toLocaleDateString()}
+                                </span>
+                              )}
                             </span>
                           </td>
 
@@ -337,7 +321,7 @@ export default function OrganizationsPage() {
                 <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1">
                   <span className="flex items-center gap-1">
                     <Layers className="w-3 h-3 text-slate-500" />
-                    Quota: <strong className="text-slate-200">{selectedSummary.maxBranches ?? 'Unlimited'}</strong>
+                    Paid branches ready: <strong className="text-slate-200">{selectedSummary.branchCredits}</strong>
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="capitalize">{selectedSummary.businessType}</span>
@@ -481,70 +465,18 @@ export default function OrganizationsPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = e.target as HTMLFormElement;
-                const maxBranches = form.maxBranches.value ? parseInt(form.maxBranches.value) : null;
-                const maxUsers = form.maxUsers.value ? parseInt(form.maxUsers.value) : null;
-                const planId = form.planId.value as OrganizationSummary['planId'];
                 const subscriptionStatus = form.subscriptionStatus.value as OrganizationSummary['subscriptionStatus'];
 
-                updateOrgMutation.mutate({
-                  id: editingOrg.id,
-                  data: {
-                    maxBranches,
-                    maxUsers,
-                    planId,
-                    subscriptionStatus,
-                  },
-                });
+                updateOrgMutation.mutate({ id: editingOrg.id, status: subscriptionStatus });
               }}
               className="space-y-4"
             >
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                    Max Branches Quota
-                  </label>
-                  <input
-                    name="maxBranches"
-                    type="number"
-                    defaultValue={editingOrg.maxBranches ?? ''}
-                    placeholder="Empty for unlimited"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
-                  <p className="text-[10px] text-slate-500 mt-1">Currently used: {editingOrg.branchCount}</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                    Max Users Quota
-                  </label>
-                  <input
-                    name="maxUsers"
-                    type="number"
-                    defaultValue={editingOrg.maxUsers ?? ''}
-                    placeholder="Empty for unlimited"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
-                  <p className="text-[10px] text-slate-500 mt-1">Currently used: {editingOrg.userCount}</p>
-                </div>
-              </div>
+              <p className="text-xs text-slate-400">
+                Each branch has its own subscription, set by its payments ({editingOrg.branchCount} branches,{' '}
+                {editingOrg.userCount} users). Suspending an organization locks every branch.
+              </p>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                    Subscription Plan
-                  </label>
-                  <select
-                    name="planId"
-                    defaultValue={editingOrg.planId}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="starter">Starter</option>
-                    <option value="basic">Basic</option>
-                    <option value="pro">Pro</option>
-                    <option value="enterprise">Enterprise</option>
-                  </select>
-                </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                     Subscription Status
