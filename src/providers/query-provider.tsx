@@ -11,7 +11,8 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 60 * 1000, // 1 minute
             refetchOnWindowFocus: false,
-            retry: 1,
+            // Never repeat a call that failed because the session ended.
+            retry: (count: number, error: unknown) => !(error as { status?: number })?.status || ((error as { status: number }).status !== 401 && count < 1),
           },
         },
       }),

@@ -8,10 +8,15 @@ import { Lock, Mail, ShieldAlert, Sparkles, ArrowRight, Loader2 } from 'lucide-r
 export default function LoginPage() {
   const { login, isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [expired, setExpired] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setExpired(new URLSearchParams(window.location.search).get('expired') === '1');
+  }, []);
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -58,6 +63,13 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl p-8 shadow-2xl shadow-black/60">
           <h2 className="text-lg font-semibold text-white mb-1">Super Admin Authentication</h2>
           <p className="text-xs text-slate-400 mb-6">Enter platform credentials to access administrative systems</p>
+
+          {expired && !error && (
+            <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-300">
+              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <span>Your session expired. Please sign in again.</span>
+            </div>
+          )}
 
           {error && (
             <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-300">

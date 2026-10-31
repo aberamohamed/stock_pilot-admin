@@ -1,5 +1,7 @@
 import {
   AdminUser,
+  BillingSettings,
+  BillingSettingsChange,
   MedicineCategory,
   MedicineDetail,
   MedicineSummary,
@@ -7,7 +9,6 @@ import {
   OrganizationDetail,
   OrganizationSummary,
   PlatformAnalytics,
-  SubscriptionPlan,
   SubscriptionUpgradeRequest,
   SupportedBank,
   UserDetail,
@@ -43,54 +44,105 @@ export function setStoredToken(token: string | null): void {
   }
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+const REFRESH_KEY = 'nexora_platform_admin_refresh_token';
+const getRefreshToken = () => (typeof window === 'undefined' ? null : localStorage.getItem(REFRESH_KEY));
+export function setStoredRefreshToken(token: string | null): void {
+  if (typeof window === 'undefined') return;
+  if (token) localStorage.setItem(REFRESH_KEY, token);
+  else localStorage.removeItem(REFRESH_KEY);
+}
+
+export const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please sign in again.';
+
+/** Once the session is over, nothing is sent until the admin signs in again (stops polling from failing forever). */
+let sessionEnded = false;
+export function markSignedIn() {
+  sessionEnded = false;
+}
+
+function endSession() {
+  if (sessionEnded) return;
+  sessionEnded = true;
+  setStoredToken(null);
+  setStoredRefreshToken(null);
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.href = '/login?expired=1';
+  }
+}
+
+let pendingRefresh: Promise<boolean> | null = null;
+
+/** Swaps the refresh token for new tokens, once even when several requests fail together. A network failure keeps the session. */
+function refreshSession(): Promise<boolean> {
+  pendingRefresh ??= (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+    try {
+      const res = await fetch(`${API_BASE}/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (res.status === 401 || res.status === 403) return false;
+      if (!res.ok) throw new Error('refresh failed');
+      const body = await res.json();
+      setStoredToken(body.data.token);
+      setStoredRefreshToken(body.data.refreshToken);
+      return true;
+    } catch {
+      throw new ApiError(0, 'NETWORK', 'Could not reach the server. Check your connection.');
+    }
+  })().finally(() => {
+    pendingRefresh = null;
+  });
+  return pendingRefresh;
+}
+
+async function send(endpoint: string, options: RequestInit): Promise<Response> {
   const token = getStoredToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+}
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+/** The JSON body of a call; a 401 renews the token and repeats once, and a rejected refresh ends the session. */
+async function requestBody(endpoint: string, options: RequestInit = {}): Promise<any> {
+  const isAuthCall = endpoint.includes('/login') || endpoint.includes('/refresh');
+  if (sessionEnded && !isAuthCall) throw new ApiError(401, 'SESSION_EXPIRED', SESSION_EXPIRED_MESSAGE);
+
+  let response = await send(endpoint, options);
+  if (response.status === 401 && !isAuthCall) {
+    if (await refreshSession()) response = await send(endpoint, options);
+    if (response.status === 401) {
+      endSession();
+      throw new ApiError(401, 'SESSION_EXPIRED', SESSION_EXPIRED_MESSAGE);
+    }
   }
-
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
 
   const body = await response.json().catch(() => ({}));
-
   if (!response.ok) {
-    if (
-      response.status === 401 &&
-      typeof window !== 'undefined' &&
-      window.location.pathname !== '/login' &&
-      !endpoint.includes('/login') &&
-      !endpoint.includes('/me')
-    ) {
-      setStoredToken(null);
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = '/login';
-    }
-    throw new ApiError(
-      response.status,
-      body.error?.code || 'UNKNOWN_ERROR',
-      body.error?.message || response.statusText || 'Request failed',
-    );
+    throw new ApiError(response.status, body.error?.code || 'UNKNOWN_ERROR', body.error?.message || response.statusText || 'Request failed');
   }
+  return body;
+}
 
-  return body.data as T;
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  return (await requestBody(endpoint, options)).data as T;
 }
 
 export const adminApi = {
   // Auth
-  login: async (email: string, password: string): Promise<{ token: string; email: string; role: string }> => {
-    const data = await request<{ token: string; email: string; role: string }>('/login', {
+  login: async (email: string, password: string): Promise<{ token: string; refreshToken: string; email: string; role: string }> => {
+    const data = await request<{ token: string; refreshToken: string; email: string; role: string }>('/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    markSignedIn();
     setStoredToken(data.token);
+    setStoredRefreshToken(data.refreshToken);
     return data;
   },
 
@@ -120,15 +172,7 @@ export const adminApi = {
     if (params?.limit) q.set('limit', String(params.limit));
     if (params?.offset) q.set('offset', String(params.offset));
 
-    const token = getStoredToken();
-    const res = await fetch(`${API_BASE}/users?${q.toString()}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    const body = await res.json();
-    return body;
+    return requestBody(`/users?${q.toString()}`);
   },
 
   getUser: async (id: string): Promise<UserDetail> => {
@@ -159,7 +203,6 @@ export const adminApi = {
   listOrganizations: async (params?: {
     search?: string;
     businessType?: string;
-    planId?: string;
     status?: string;
     limit?: number;
     offset?: number;
@@ -167,20 +210,11 @@ export const adminApi = {
     const q = new URLSearchParams();
     if (params?.search) q.set('search', params.search);
     if (params?.businessType) q.set('businessType', params.businessType);
-    if (params?.planId) q.set('planId', params.planId);
     if (params?.status) q.set('status', params.status);
     if (params?.limit) q.set('limit', String(params.limit));
     if (params?.offset) q.set('offset', String(params.offset));
 
-    const token = getStoredToken();
-    const res = await fetch(`${API_BASE}/organizations?${q.toString()}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    const body = await res.json();
-    return body;
+    return requestBody(`/organizations?${q.toString()}`);
   },
 
   getOrganization: async (id: string): Promise<OrganizationDetail> => {
@@ -201,43 +235,9 @@ export const adminApi = {
     });
   },
 
-  // Subscription Plans
-  listPlans: async (businessType?: string): Promise<SubscriptionPlan[]> => {
-    const q = businessType ? `?businessType=${businessType}` : '';
-    return request<SubscriptionPlan[]>(`/plans${q}`);
-  },
-
-  createPlan: async (plan: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> => {
-    return request<SubscriptionPlan>('/plans', {
-      method: 'POST',
-      body: JSON.stringify(plan),
-    });
-  },
-
-  updatePlan: async (id: string, plan: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> => {
-    return request<SubscriptionPlan>(`/plans/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(plan),
-    });
-  },
-
-  updatePlanStatus: async (id: string, isActive: boolean): Promise<{ id: string; isActive: boolean }> => {
-    return request<{ id: string; isActive: boolean }>(`/plans/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ isActive }),
-    });
-  },
-
   // Subscription Upgrade Requests & Tenant Subscriptions
   listUpgradeRequests: async (status: 'pending' | 'approved' | 'rejected' | 'all' = 'all', limit = 50, offset = 0): Promise<{ data: SubscriptionUpgradeRequest[]; meta: { total: number; limit: number; offset: number } }> => {
-    const token = getStoredToken();
-    const res = await fetch(`${API_BASE}/subscription-requests?status=${status}&limit=${limit}&offset=${offset}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    return res.json();
+    return requestBody(`/subscription-requests?status=${status}&limit=${limit}&offset=${offset}`);
   },
 
   getUpgradeRequest: async (id: string): Promise<SubscriptionUpgradeRequest> => {
@@ -258,19 +258,11 @@ export const adminApi = {
     });
   },
 
-  updateOrganizationSubscription: async (orgId: string, input: {
-    planId: string;
-    billingCycle?: string;
-    status?: string;
-    overrideLimits?: boolean;
-    maxBranches?: number | null;
-    maxUsers?: number | null;
-  }): Promise<OrganizationSummary> => {
-    return request<OrganizationSummary>(`/organizations/${orgId}/subscription`, {
-      method: 'PATCH',
-      body: JSON.stringify(input),
-    });
-  },
+  // Pricing: what a branch and an extra user cost, and the users a branch includes
+  billingSettingsHistory: () => request<BillingSettingsChange[]>('/billing-settings/history'),
+  getBillingSettings: () => request<BillingSettings>('/billing-settings'),
+  updateBillingSettings: (settings: BillingSettings) =>
+    request<BillingSettings>('/billing-settings', { method: 'PUT', body: JSON.stringify(settings) }),
 
   // Categories
   listCategories: async (activeOnly = false): Promise<MedicineCategory[]> => {
@@ -316,14 +308,7 @@ export const adminApi = {
     if (params?.limit) q.set('limit', String(params.limit));
     if (params?.offset) q.set('offset', String(params.offset));
 
-    const token = getStoredToken();
-    const res = await fetch(`${API_BASE}/medicines?${q.toString()}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    return res.json();
+    return requestBody(`/medicines?${q.toString()}`);
   },
 
   /** Products pharmacies created, and shared products the catalog split paired by fallback. */

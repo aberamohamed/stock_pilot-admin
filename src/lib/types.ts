@@ -23,7 +23,8 @@ export interface PlatformAnalytics {
     pendingRequests: number;
     approvedRequests: number;
     rejectedRequests: number;
-    estimatedMrr: number;
+    /** Total ETB of approved payments. */
+    revenue: number;
   };
   medicines: {
     total: number;
@@ -35,21 +36,20 @@ export interface PlatformAnalytics {
   };
   breakdowns: {
     byBusinessType: Array<{ type: string; count: number }>;
-    byPlan: Array<{ plan: string; count: number }>;
   };
   recentSignups: Array<{
     id: string;
     name: string;
     businessType: string;
-    planId: string;
     status: string;
     createdAt: string;
   }>;
   recentUpgrades: Array<{
     id: string;
     organizationName: string;
-    currentPlanId: string;
-    targetPlanId: string;
+    kind: 'activation' | 'renewal' | 'branch' | 'user';
+    quantity: number;
+    amount: number;
     paymentMethod: string;
     status: string;
     createdAt: string;
@@ -77,7 +77,6 @@ export interface UserSummary {
 }
 
 export interface UserDetail extends UserSummary {
-  planId: string;
   subscriptionStatus: string;
   activeSessionsCount: number;
 }
@@ -89,11 +88,13 @@ export interface OrganizationSummary {
   phone: string | null;
   address: string | null;
   logoUri: string | null;
-  planId: 'starter' | 'basic' | 'pro' | 'enterprise';
-  billingCycle: 'monthly' | 'yearly';
   subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled';
-  maxBranches: number | null;
-  maxUsers: number | null;
+  /** Branches paid for and not created yet. */
+  branchCredits: number;
+  /** The soonest end date among its branches. */
+  nextExpiry: string | null;
+  /** Has made the first payment. */
+  activated: boolean;
   branchCount: number;
   userCount: number;
   salesCount: number;
@@ -129,24 +130,6 @@ export interface OrganizationDetail extends OrganizationSummary {
   };
 }
 
-export interface SubscriptionPlan {
-  id: string;
-  planId: 'starter' | 'basic' | 'pro' | 'enterprise';
-  businessType: 'pharmacy' | 'gym' | 'others';
-  name: string;
-  description: string;
-  monthlyPrice: number;
-  yearlyPrice: number;
-  currency: string;
-  maxBranches: number | null;
-  maxUsers: number | null;
-  trialDays: number;
-  features: string[];
-  featureAccess: Record<string, unknown> | null;
-  highlight: boolean;
-  isActive: boolean;
-}
-
 export interface SubscriptionUpgradeRequest {
   id: string;
   organizationId: string;
@@ -156,9 +139,17 @@ export interface SubscriptionUpgradeRequest {
   requestedByName: string;
   requestedByEmail: string | null;
   requestedByMobile: string | null;
-  currentPlanId: string;
-  targetPlanId: string;
-  billingCycle: 'monthly' | 'yearly';
+  /** activation: the first payment; renewal: every seat for another period; branch / user: more seats. */
+  kind: 'activation' | 'renewal' | 'branch' | 'user';
+  quantity: number;
+  amount: number;
+  /** The branch a renewal or an extra user is for. */
+  branchId: string | null;
+  branchName: string | null;
+  /** Users this payment adds, fixed when it was made. */
+  usersGranted: number | null;
+  /** Days of access it adds when approved. */
+  daysGranted: number | null;
   paymentMethod: string;
   transactionId: string;
   paymentReference: string;
@@ -261,4 +252,29 @@ export interface SupportedBank {
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
+}
+
+/** What seats cost; applies to payments made after it is changed. */
+export interface BillingSettings {
+  /** ETB for the activation and for each extra branch. */
+  branchPrice: number;
+  /** ETB for each extra user. */
+  extraUserPrice: number;
+  /** Users a branch comes with. */
+  usersPerBranch: number;
+  /** Days of access one payment buys. */
+  periodDays: number;
+  /** Extra days on an organization's first payment only. */
+  firstPaymentBonusDays: number;
+}
+
+export interface BillingSettingsChange extends BillingSettings {
+  id: number;
+  changedBy: string;
+  changedAt: string;
+  previousBranchPrice: number;
+  previousExtraUserPrice: number;
+  previousUsersPerBranch: number;
+  previousPeriodDays: number | null;
+  previousFirstPaymentBonusDays: number | null;
 }

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { adminApi, getStoredToken, setStoredToken } from '@/lib/api';
+import { adminApi, ApiError, getStoredToken, setStoredRefreshToken, setStoredToken } from '@/lib/api';
 import { AdminUser } from '@/lib/types';
 
 interface AuthContextType {
@@ -32,9 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const user = await adminApi.getMe();
         setAdmin(user);
-      } catch {
+      } catch (error) {
+        // A rejected session was already cleared (and sent to sign-in); a network failure keeps the tokens for the next try.
         setAdmin(null);
-        setStoredToken(null);
+        if (error instanceof ApiError && error.status === 401) setStoredToken(null);
       } finally {
         setLoading(false);
       }
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setStoredToken(null);
+    setStoredRefreshToken(null);
     setAdmin(null);
     router.push('/login');
   };
