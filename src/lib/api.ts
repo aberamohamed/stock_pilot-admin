@@ -386,7 +386,7 @@ export const adminApi = {
 
   /** Bulk-adds catalog items from an .xlsx/.csv file; rows already in the catalog are skipped. */
   importItemTemplates: (input: { fileName: string; base64: string; defaultType: string }) =>
-    request<{ total: number; imported: number; skipped: number }>('/medicines/import', {
+    request<{ total: number; imported: number; skipped: number; brandsAdded?: number; remaining?: { count: number; fileName: string; mimeType: string; base64: string } }>('/medicines/import', {
       method: 'POST',
       body: JSON.stringify(input),
     }),

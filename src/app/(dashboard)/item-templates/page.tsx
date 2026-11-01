@@ -37,7 +37,7 @@ export default function ItemTemplatesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [importType, setImportType] = useState('MEDICINE');
-  const [result, setResult] = useState<{ total: number; imported: number; skipped: number } | null>(null);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof api.importItemTemplates>> | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['item-templates', search, type, page, pageSize],
@@ -267,7 +267,7 @@ export default function ItemTemplatesPage() {
                   <input type="file" accept=".xlsx,.csv" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); setError(null); }} />
                 </label>
                 <p className="text-xs text-slate-500">
-                  Columns read: Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Supplier/Manufacturer. Items already in the catalog are skipped. Samples:{' '}
+                  Columns read: Code, SCTID, Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Order Unit, Dispense Unit, Factor, Supplier/Manufacturer. Up to 2,000 rows are imported at a time; the rest come back as a file to import next. Items already in the catalog get the new brand, codes and units added. Samples:{' '}
                   {TYPES.map((t) => (
                     <span key={t.value} className="mr-2 inline-flex items-center gap-1">
                       <Download className="h-3 w-3" />{t.label}{' '}
@@ -277,7 +277,28 @@ export default function ItemTemplatesPage() {
                   ))}
                 </p>
                 {error && <p className="text-sm text-red-400">{error}</p>}
-                {result && <p className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-300">Imported {result.imported} of {result.total} rows; {result.skipped} already existed.</p>}
+                {result && (
+                  <div className="space-y-2">
+                    <p className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-300">
+                      {result.imported} new item{result.imported === 1 ? '' : 's'} added from {result.total} rows; {result.skipped} were already in the catalog
+                      {result.brandsAdded ? ` (${result.brandsAdded} new brands, codes and units were added to them)` : ''}.
+                    </p>
+                    {result.remaining && (
+                      <div className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-200">
+                        <p>
+                          Only the first 2,000 rows are imported at a time. The other {result.remaining.count} rows are in a file: download it and import it next.
+                        </p>
+                        <a
+                          className="mt-2 inline-flex items-center gap-1 text-indigo-300 underline"
+                          href={`data:${result.remaining.mimeType};base64,${result.remaining.base64}`}
+                          download={result.remaining.fileName}
+                        >
+                          <Download className="h-3 w-3" /> Download the remaining {result.remaining.count} rows
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button disabled={!file || upload.isPending} onClick={() => { setError(null); upload.mutate(); }} className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white disabled:opacity-50">{upload.isPending ? 'Importing…' : 'Import'}</button>
               </div>
             )}
