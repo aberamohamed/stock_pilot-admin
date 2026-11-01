@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileSpreadsheet, Pencil, Plus, Search, Upload, X } from 'lucide-react';
 import { Pagination } from '@/components/pagination';
@@ -45,6 +45,62 @@ export default function ItemTemplatesPage() {
   });
   const items = data?.data ?? [];
   const total = data?.meta.total ?? 0;
+  // Ticked items stay ticked while paging, searching or filtering.
+  const [picked, setPicked] = useState<Record<string, MedicineSummary>>({});
+  const [selecting, setSelecting] = useState(false);
+  const pickedList = Object.values(picked);
+  const allShown = items.length > 0 && items.every((m) => picked[m.id]);
+  const someShown = items.some((m) => picked[m.id]);
+  const headerBox = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (headerBox.current) headerBox.current.indeterminate = someShown && !allShown;
+  }, [someShown, allShown]);
+  const toggle = (m: MedicineSummary) =>
+    setPicked((prev) => {
+      const next = { ...prev };
+      if (next[m.id]) delete next[m.id];
+      else next[m.id] = m;
+      return next;
+    });
+  const toggleShown = () =>
+    setPicked((prev) => {
+      const next = { ...prev };
+      for (const m of items) {
+        if (allShown) delete next[m.id];
+        else next[m.id] = m;
+      }
+      return next;
+    });
+  // Every item matching the search and type, not only this page (500 at a time).
+  const selectEveryMatch = async () => {
+    setSelecting(true);
+    try {
+      const found: MedicineSummary[] = [];
+      for (let offset = 0; offset < Math.min(total, 5000); offset += 500) {
+        const r = await api.listMedicines({ search: search || undefined, productType: type || undefined, limit: 500, offset });
+        found.push(...r.data);
+      }
+      setPicked((prev) => ({ ...prev, ...Object.fromEntries(found.map((m) => [m.id, m])) }));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSelecting(false);
+    }
+  };
+  const downloadCsv = () => {
+    const cell = (v: string | null | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
+    const csv = ['Name,Strength,Form,Brand,Category,Type']
+      .concat(
+        pickedList.map((m) =>
+          [m.genericName, m.strength, m.dosageForm, m.brandNames?.[0], m.therapeuticCategory, TYPES.find((t) => t.value === m.productType)?.label ?? m.productType].map(cell).join(','),
+        ),
+      )
+      .join('\n');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    link.download = `item-templates-${pickedList.length}-items.csv`;
+    link.click();
+  };
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['item-templates'] });
 
   const closeDialog = () => {
@@ -109,7 +165,10 @@ export default function ItemTemplatesPage() {
           <h1 className="text-2xl font-bold text-white">Item Templates</h1>
           <p className="text-sm text-slate-400">The shared catalog pharmacies pick items from. Add one by hand or import an Excel or CSV file.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={downloadCsv} disabled={pickedList.length === 0} className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+            <Download className="h-4 w-4" /> Download selected ({pickedList.length})
+          </button>
           <button onClick={() => setDialog('import')} className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800">
             <Upload className="h-4 w-4" /> Import Excel / CSV
           </button>
@@ -124,6 +183,12 @@ export default function ItemTemplatesPage() {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
           <input className={`${input} pl-9`} placeholder="Search name or brand" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
+        <button onClick={() => void selectEveryMatch()} disabled={selecting || total === 0} className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+          {selecting ? 'Selecting…' : `Select all matching (${total})`}
+        </button>
+        {pickedList.length > 0 && (
+          <button onClick={() => setPicked({})} className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white">Clear selection</button>
+        )}
         <select className={`${input} w-44`} value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}>
           <option value="">All types</option>
           {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -133,13 +198,21 @@ export default function ItemTemplatesPage() {
       <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-800 text-xs uppercase text-slate-500">
-            <tr>{['Name', 'Strength', 'Form', 'Brand', 'Type', 'Category', ''].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}</tr>
+            <tr>
+              <th className="w-10 px-4 py-3">
+                <input ref={headerBox} type="checkbox" aria-label="Select all shown" checked={allShown} disabled={items.length === 0} onChange={toggleShown} className="h-4 w-4 accent-indigo-500" />
+              </th>
+              {['Name', 'Strength', 'Form', 'Brand', 'Type', 'Category', ''].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}
+            </tr>
           </thead>
           <tbody className="divide-y divide-slate-800 text-slate-200">
-            {isLoading && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
-            {!isLoading && items.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
+            {isLoading && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
+            {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
             {items.map((m) => (
-              <tr key={m.id}>
+              <tr key={m.id} className={picked[m.id] ? 'bg-indigo-500/5' : ''}>
+                <td className="px-4 py-2.5">
+                  <input type="checkbox" aria-label={`Select ${m.genericName}`} checked={Boolean(picked[m.id])} onChange={() => toggle(m)} className="h-4 w-4 accent-indigo-500" />
+                </td>
                 <td className="px-4 py-2.5 font-medium">{m.genericName}</td>
                 <td className="px-4 py-2.5">{m.strength ?? '—'}</td>
                 <td className="px-4 py-2.5">{m.dosageForm ?? '—'}</td>
