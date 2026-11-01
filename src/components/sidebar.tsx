@@ -13,7 +13,9 @@ import {
   Tag,
   FileSpreadsheet,
   Wallet,
+  ShieldCheck,
   Sparkles,
+  Handshake,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
@@ -77,6 +79,18 @@ const navItems = [
     name: 'Banks & Wallets',
     href: '/banks',
     icon: Wallet,
+    badge: null,
+  },
+  {
+    name: 'Payment verification',
+    href: '/payment-verification',
+    icon: ShieldCheck,
+    badge: null,
+  },
+  {
+    name: 'Sales agents',
+    href: '/sales-agents',
+    icon: Handshake,
     badge: null,
   },
 ];

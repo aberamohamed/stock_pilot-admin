@@ -95,6 +95,8 @@ export interface OrganizationSummary {
   nextExpiry: string | null;
   /** Has made the first payment. */
   activated: boolean;
+  salesAgentId?: string | null;
+  salesAgentName?: string | null;
   branchCount: number;
   userCount: number;
   salesCount: number;
@@ -146,6 +148,15 @@ export interface SubscriptionUpgradeRequest {
   /** The branch a renewal or an extra user is for. */
   branchId: string | null;
   branchName: string | null;
+  /** The user an extra-user payment is for (created first, paid after). */
+  userId?: string | null;
+  userName?: string | null;
+  userMobile?: string | null;
+  /** What the server found when it checked the Telebirr receipt. */
+  verificationStatus?: 'verified' | 'review' | 'unverified' | 'invalid' | null;
+  verificationNote?: string | null;
+  receiptAmount?: number | null;
+  receiptPaidAt?: string | null;
   /** Users this payment adds, fixed when it was made. */
   usersGranted: number | null;
   /** Days of access it adds when approved. */
@@ -255,6 +266,16 @@ export interface SupportedBank {
 }
 
 /** What seats cost; applies to payments made after it is changed. */
+/** Who a Telebirr payment must go to, and how a verified receipt is handled. */
+export interface PaymentVerificationSettings {
+  enabled: boolean;
+  recipientName: string;
+  recipientNumber: string;
+  autoApprove: boolean;
+  maxAgeHours: number;
+  requireReference: boolean;
+}
+
 export interface BillingSettings {
   /** ETB for the activation and for each extra branch. */
   branchPrice: number;
@@ -277,4 +298,59 @@ export interface BillingSettingsChange extends BillingSettings {
   previousUsersPerBranch: number;
   previousPeriodDays: number | null;
   previousFirstPaymentBonusDays: number | null;
+}
+
+export interface SalesAgent {
+  id: string;
+  name: string;
+  phone: string;
+  referenceCode: string;
+  commissionPercent: number;
+  commissionMonths: number;
+  isActive: boolean;
+  notes: string;
+  createdAt: string;
+  referred?: number;
+  paying?: number;
+  unpaid?: number;
+  paid?: number;
+}
+
+export interface SalesAgentInput {
+  name: string;
+  phone: string;
+  commissionPercent: number;
+  commissionMonths: number;
+  notes: string;
+  isActive: boolean;
+}
+
+export interface SalesAgentDetail {
+  agent: SalesAgent;
+  organizations: Array<{
+    id: string;
+    name: string;
+    businessType: string;
+    phone: string | null;
+    subscriptionStatus: string;
+    activated: boolean;
+    firstPaidAt: string | null;
+    registeredAt: string;
+    codeEntered: string | null;
+    paidTotal: number;
+    commission: number;
+  }>;
+  commissions: Array<{
+    id: string;
+    kind: string;
+    baseAmount: number;
+    rate: number;
+    amount: number;
+    status: 'earned' | 'paid';
+    earnedAt: string;
+    paidAt: string | null;
+    paidBy: string | null;
+    organizationId: string;
+    organizationName: string;
+  }>;
 }
