@@ -316,6 +316,20 @@ export interface RoleDefinitionInfo {
   defaults: string[];
 }
 
+export interface AdminBroadcast {
+  id: string;
+  title: string;
+  body: string;
+  audience: 'all' | 'selected';
+  recipientCount: number;
+  deviceCount: number;
+  pushSent: number;
+  pushFailed: number;
+  status: 'sending' | 'sent';
+  createdBy: string;
+  createdAt: string;
+}
+
 export interface SalesAgent {
   id: string;
   name: string;

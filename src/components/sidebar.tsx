@@ -17,6 +17,7 @@ import {
   Sparkles,
   Handshake,
   KeyRound,
+  Bell,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
@@ -86,6 +87,12 @@ const navItems = [
     name: 'Payment verification',
     href: '/payment-verification',
     icon: ShieldCheck,
+    badge: null,
+  },
+  {
+    name: 'Notifications',
+    href: '/notifications',
+    icon: Bell,
     badge: null,
   },
   {

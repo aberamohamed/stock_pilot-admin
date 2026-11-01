@@ -2,6 +2,7 @@ import {
   AdminUser,
   BillingSettings,
   PaymentVerificationSettings,
+  AdminBroadcast,
   PermissionInfo,
   RoleDefinitionInfo,
   SalesAgent,
@@ -274,6 +275,13 @@ export const adminApi = {
   getPaymentVerification: () => request<PaymentVerificationSettings>('/payment-verification'),
   updatePaymentVerification: (settings: PaymentVerificationSettings) =>
     request<PaymentVerificationSettings>('/payment-verification', { method: 'PUT', body: JSON.stringify(settings) }),
+
+  // Notifications sent to users from the admin panel
+  listBroadcasts: () => request<AdminBroadcast[]>('/notifications'),
+  sendBroadcast: (input: { title: string; body: string; audience: 'all' | 'selected'; userIds: string[] }) =>
+    request<{ id: string; recipients: number; devices: number }>('/notifications', { method: 'POST', body: JSON.stringify(input) }),
+  broadcastRecipients: (id: string) =>
+    request<Array<{ id: string; name: string; mobile: string | null; organizationName: string }>>(`/notifications/${id}/recipients`),
 
   getPermissions: () => request<{ permissions: PermissionInfo[]; roles: RoleDefinitionInfo[] }>('/permissions'),
 
