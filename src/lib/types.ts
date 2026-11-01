@@ -300,6 +300,22 @@ export interface BillingSettingsChange extends BillingSettings {
   previousFirstPaymentBonusDays: number | null;
 }
 
+export interface PermissionInfo {
+  key: string;
+  group: string;
+  label: string;
+  description: string;
+}
+
+export interface RoleDefinitionInfo {
+  key: string;
+  name: string;
+  description: string;
+  orgWide: boolean;
+  locked: boolean;
+  defaults: string[];
+}
+
 export interface SalesAgent {
   id: string;
   name: string;

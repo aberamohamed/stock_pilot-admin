@@ -2,6 +2,8 @@ import {
   AdminUser,
   BillingSettings,
   PaymentVerificationSettings,
+  PermissionInfo,
+  RoleDefinitionInfo,
   SalesAgent,
   SalesAgentDetail,
   SalesAgentInput,
@@ -272,6 +274,8 @@ export const adminApi = {
   getPaymentVerification: () => request<PaymentVerificationSettings>('/payment-verification'),
   updatePaymentVerification: (settings: PaymentVerificationSettings) =>
     request<PaymentVerificationSettings>('/payment-verification', { method: 'PUT', body: JSON.stringify(settings) }),
+
+  getPermissions: () => request<{ permissions: PermissionInfo[]; roles: RoleDefinitionInfo[] }>('/permissions'),
 
   // Sales agents (referral commission)
   listSalesAgents: () => request<SalesAgent[]>('/sales-agents'),

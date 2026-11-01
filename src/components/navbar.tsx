@@ -11,6 +11,7 @@ const routeTitles: Record<string, { title: string; subtitle: string }> = {
   '/organizations': { title: 'Organizations', subtitle: 'Multi-tenant businesses, branches & operational status' },
   '/subscription-requests': { title: 'Upgrade Queue', subtitle: 'Tenant payment receipts & instant subscription review' },
   '/payment-verification': { title: 'Payment verification', subtitle: 'Who Telebirr payments must go to, and how receipts are checked' },
+  '/permissions': { title: 'Roles & permissions', subtitle: 'Everything a role can be allowed to do, and what each default role gets' },
   '/sales-agents': { title: 'Sales agents', subtitle: 'Referral codes, the pharmacies each agent brought, and commission to pay' },
   '/pricing': { title: 'Pricing', subtitle: 'What a branch and an extra user cost, and the users each branch includes' },
   '/categories': { title: 'Medicine Categories', subtitle: 'National therapeutic drug categories and sorting' },
