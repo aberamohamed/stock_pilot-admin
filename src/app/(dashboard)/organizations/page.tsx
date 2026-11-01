@@ -58,6 +58,16 @@ export default function OrganizationsPage() {
     enabled: !!activeOrgId,
   });
 
+  const { data: salesAgents } = useQuery({ queryKey: ['sales-agents'], queryFn: adminApi.listSalesAgents });
+  const assignAgent = useMutation({
+    mutationFn: ({ id, agentId }: { id: string; agentId: string | null }) => adminApi.assignOrganizationAgent(id, agentId, 'Changed in admin panel'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['organization-detail', activeOrgId] });
+      queryClient.invalidateQueries({ queryKey: ['sales-agents'] });
+    },
+  });
+
   // Status mutation
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -333,6 +343,24 @@ export default function OrganizationsPage() {
                     </span>
                   )}
                 </div>
+                <label className="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
+                  Referred by
+                  <select
+                    className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+                    value={selectedOrgDetail?.salesAgentId ?? ''}
+                    disabled={assignAgent.isPending}
+                    onChange={(e) => {
+                      if (selectedSummary && confirm('Change the sales agent for this pharmacy? Commission already earned stays with the old agent.')) {
+                        assignAgent.mutate({ id: selectedSummary.id, agentId: e.target.value || null });
+                      }
+                    }}
+                  >
+                    <option value="">No agent</option>
+                    {(salesAgents ?? []).map((a) => (
+                      <option key={a.id} value={a.id}>{a.name} ({a.referenceCode})</option>
+                    ))}
+                  </select>
+                </label>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-slate-400 text-xs">

@@ -19,6 +19,15 @@ import {
   CreditCard,
 } from 'lucide-react';
 
+/** What a payment is for, naming the branch or user that was created and is waiting for it. */
+function describeRequest(req: { kind: string; quantity: number; branchName?: string | null; userName?: string | null }): string {
+  if (req.kind === 'activation') return 'First payment';
+  if (req.kind === 'renewal') return `Renewal${req.branchName ? ` · ${req.branchName}` : ''}`;
+  if (req.kind === 'branch' && req.branchName) return `New branch: ${req.branchName}`;
+  if (req.kind === 'user' && req.userName) return `New user: ${req.userName}${req.branchName ? ` · ${req.branchName}` : ''}`;
+  return `${req.quantity} × ${req.kind}${req.branchName ? ` · ${req.branchName}` : ''}`;
+}
+
 export default function SubscriptionRequestsPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
@@ -33,6 +42,20 @@ export default function SubscriptionRequestsPage() {
     queryKey: ['subscription-requests', statusFilter],
     queryFn: () => adminApi.listUpgradeRequests(statusFilter),
     refetchInterval: 15000, // auto poll every 15s for pending requests
+  });
+
+  // The Verify button: the server checks the Telebirr receipt now; the result is shown under the request.
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const verifyMutation = useMutation({
+    mutationFn: (id: string) => adminApi.verifyUpgradeRequest(id),
+    onMutate: (id) => {
+      setVerifyingId(id);
+      setVerifyError(null);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscription-requests'] }),
+    onError: (e: Error) => setVerifyError(e.message),
+    onSettled: () => setVerifyingId(null),
   });
 
   const reviewMutation = useMutation({
@@ -114,6 +137,7 @@ export default function SubscriptionRequestsPage() {
       </div>
 
       {/* Requests Table / Card List */}
+      {verifyError ? <p className="text-xs text-red-400">Could not verify: {verifyError}</p> : null}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
           <Loader2 className="w-7 h-7 animate-spin text-indigo-500" />
@@ -165,14 +189,24 @@ export default function SubscriptionRequestsPage() {
                     {/* What was bought */}
                     <td className="px-5 py-4">
                       <p className="font-bold text-indigo-400 text-[11px] uppercase">
-                        {req.kind === 'activation' ? 'First payment' : req.kind === 'renewal' ? 'Renewal' : `${req.quantity} × ${req.kind}`}
-                        {req.branchName ? ` · ${req.branchName}` : ''}
+                        {describeRequest(req)}
                       </p>
                       <span className="text-[10px] text-slate-400">
                         ETB {req.amount.toLocaleString()}
                         {req.daysGranted ? ` · +${req.daysGranted} days` : ''}
                         {req.usersGranted ? ` · +${req.usersGranted} user${req.usersGranted === 1 ? '' : 's'}` : ''}
                       </span>
+                      {req.verificationStatus ? (
+                        <p
+                          className={`mt-1 text-[10px] font-semibold ${
+                            req.verificationStatus === 'verified' ? 'text-emerald-400' : req.verificationStatus === 'review' ? 'text-amber-400' : req.verificationStatus === 'invalid' ? 'text-red-400' : 'text-slate-400'
+                          }`}
+                          title={req.verificationNote ?? ''}
+                        >
+                          {req.verificationStatus === 'verified' ? '✓ Verified by the server' : req.verificationStatus === 'review' ? '! Check the amount' : req.verificationStatus === 'invalid' ? '✗ Invalid transaction' : '? Not checked: verify by hand'}
+                          {req.verificationNote ? ` · ${req.verificationNote}` : ''}
+                        </p>
+                      ) : null}
                     </td>
 
                     {/* Payment Info */}
@@ -231,11 +265,21 @@ export default function SubscriptionRequestsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setSelectedReceipt(req)}
-                            title="Verify Receipt"
+                            title="View receipt"
                             className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+                          {req.paymentMethod === 'telebirr' ? (
+                            <button
+                              onClick={() => verifyMutation.mutate(req.id)}
+                              disabled={verifyingId === req.id}
+                              title="Check this payment against Ethio telecom's receipt"
+                              className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
+                            >
+                              {verifyingId === req.id ? 'Checking…' : 'Verify'}
+                            </button>
+                          ) : null}
                           <button
                             onClick={() => setReviewingRequest({ request: req, action: 'approve' })}
                             className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
@@ -298,7 +342,7 @@ export default function SubscriptionRequestsPage() {
               <div className="flex justify-between">
                 <span className="text-slate-400">Bought:</span>
                 <span className="text-white font-semibold">
-                  {selectedReceipt.kind === 'activation' ? 'First payment' : selectedReceipt.kind === 'renewal' ? 'Renewal' : `${selectedReceipt.quantity} × ${selectedReceipt.kind}`} · ETB {selectedReceipt.amount.toLocaleString()}
+                  {describeRequest(selectedReceipt)} · ETB {selectedReceipt.amount.toLocaleString()}
                 </span>
               </div>
               {selectedReceipt.reviewNote && (
@@ -431,7 +475,7 @@ function ReviewDecisionModal({
                 Are you sure you want to approve{' '}
                 <strong className="text-white">{request.organizationName}</strong> for{' '}
                 <strong className="text-indigo-400">
-                  {request.kind === 'activation' ? 'the first payment' : request.kind === 'renewal' ? 'a renewal' : `${request.quantity} ${request.kind}${request.quantity === 1 ? '' : 's'}`}
+                  {request.kind === 'activation' ? 'the first payment' : describeRequest(request)}
                 </strong>{' '}
                 (ETB {request.amount.toLocaleString()})? Their access and limits update right away.
               </>

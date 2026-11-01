@@ -1,6 +1,10 @@
 import {
   AdminUser,
   BillingSettings,
+  PaymentVerificationSettings,
+  SalesAgent,
+  SalesAgentDetail,
+  SalesAgentInput,
   BillingSettingsChange,
   MedicineCategory,
   MedicineDetail,
@@ -251,6 +255,11 @@ export const adminApi = {
     });
   },
 
+  /** Checks the Telebirr receipt again, now, and saves what was found. */
+  verifyUpgradeRequest: async (requestId: string): Promise<{ request: SubscriptionUpgradeRequest; verification: { status: 'verified' | 'review' | 'unverified' | 'invalid'; note: string } }> => {
+    return request(`/subscription-requests/${requestId}/verify`, { method: 'POST', body: '{}' });
+  },
+
   rejectUpgradeRequest: async (requestId: string, note?: string): Promise<SubscriptionUpgradeRequest> => {
     return request<SubscriptionUpgradeRequest>(`/subscription-requests/${requestId}/reject`, {
       method: 'POST',
@@ -260,6 +269,32 @@ export const adminApi = {
 
   // Pricing: what a branch and an extra user cost, and the users a branch includes
   billingSettingsHistory: () => request<BillingSettingsChange[]>('/billing-settings/history'),
+  getPaymentVerification: () => request<PaymentVerificationSettings>('/payment-verification'),
+  updatePaymentVerification: (settings: PaymentVerificationSettings) =>
+    request<PaymentVerificationSettings>('/payment-verification', { method: 'PUT', body: JSON.stringify(settings) }),
+
+  // Sales agents (referral commission)
+  listSalesAgents: () => request<SalesAgent[]>('/sales-agents'),
+  createSalesAgent: (input: SalesAgentInput) =>
+    request<SalesAgent>('/sales-agents', { method: 'POST', body: JSON.stringify(input) }),
+  updateSalesAgent: (id: string, input: SalesAgentInput) =>
+    request<SalesAgent>(`/sales-agents/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+  getSalesAgent: (id: string, from?: string, to?: string) => {
+    const qs = new URLSearchParams();
+    if (from) qs.set('from', from);
+    if (to) qs.set('to', to);
+    return request<SalesAgentDetail>(`/sales-agents/${id}${qs.size ? `?${qs}` : ''}`);
+  },
+  reissueAgentCode: (id: string) =>
+    request<{ referenceCode: string }>(`/sales-agents/${id}/reissue-code`, { method: 'POST', body: '{}' }),
+  payAgentCommission: (id: string, body: { entryIds?: string[]; upTo?: string }) =>
+    request<{ count: number; total: number }>(`/sales-agents/${id}/pay`, { method: 'POST', body: JSON.stringify(body) }),
+  assignOrganizationAgent: (organizationId: string, agentId: string | null, note = '') =>
+    request<{ organizationId: string; agentId: string | null }>(`/sales-agents/assign/${organizationId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ agentId, note }),
+    }),
+
   getBillingSettings: () => request<BillingSettings>('/billing-settings'),
   updateBillingSettings: (settings: BillingSettings) =>
     request<BillingSettings>('/billing-settings', { method: 'PUT', body: JSON.stringify(settings) }),
