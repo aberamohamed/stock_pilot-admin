@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileSpreadsheet, Pencil, Plus, Search, Upload, X } from 'lucide-react';
 import { Pagination } from '@/components/pagination';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import type { MedicineSummary } from '@/lib/types';
 
 const TYPES = [
@@ -155,7 +155,8 @@ export default function ItemTemplatesPage() {
       setResult(r);
       refresh();
     },
-    onError: (e: Error) => setError(e.message),
+    // The exact error: what the server said, with its status and code.
+    onError: (e: Error) => setError(e instanceof ApiError ? `Import failed (${e.status} ${e.code}): ${e.message}` : e.message),
   });
 
   return (

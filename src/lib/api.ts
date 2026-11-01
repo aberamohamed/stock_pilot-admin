@@ -129,9 +129,20 @@ async function requestBody(endpoint: string, options: RequestInit = {}): Promise
     }
   }
 
-  const body = await response.json().catch(() => ({}));
+  const raw = await response.text();
+  let body: any = {};
+  try {
+    body = raw ? JSON.parse(raw) : {};
+  } catch {
+    body = {};
+  }
   if (!response.ok) {
-    throw new ApiError(response.status, body.error?.code || 'UNKNOWN_ERROR', body.error?.message || response.statusText || 'Request failed');
+    // A proxy in front of the API (nginx) answers a too-large upload with a web page, not JSON: say what happened.
+    const fallback =
+      response.status === 413
+        ? 'The server refused this upload because it is too large (413 Content Too Large). Ask support to raise the server\'s upload limit (nginx client_max_body_size), or split the file into smaller parts.'
+        : response.statusText || (raw && !raw.trim().startsWith('<') ? raw.trim().slice(0, 300) : '') || `Request failed (${response.status})`;
+    throw new ApiError(response.status, body.error?.code || (response.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'UNKNOWN_ERROR'), body.error?.message || fallback);
   }
   return body;
 }
