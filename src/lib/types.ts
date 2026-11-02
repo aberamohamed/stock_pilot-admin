@@ -214,6 +214,12 @@ export interface MedicineSummary {
   updatedAt: string;
   /** "product" is one strength and form; "generic" is the parent name. */
   catalogLevel?: 'generic' | 'product';
+  /** The Excel form: Code, Description (strength and form together), units and Factor; the Tag is `therapeuticCategory`. */
+  catalogCode?: string | null;
+  description?: string | null;
+  orderUnit?: string | null;
+  dispenseUnit?: string | null;
+  unitsPerPack?: number | null;
   strength?: string | null;
   dosageForm?: string | null;
 }

@@ -92,10 +92,10 @@ export default function ItemTemplatesPage() {
   };
   const downloadCsv = () => {
     const cell = (v: string | null | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
-    const csv = ['Name,Strength,Form,Brand,Category,Type']
+    const csv = ['Code,Name,Brand,Description,Country,Order Unit,Dispense Unit,Factor,Tags']
       .concat(
         pickedList.map((m) =>
-          [m.genericName, m.strength, m.dosageForm, m.brandNames?.[0], m.therapeuticCategory, TYPES.find((t) => t.value === m.productType)?.label ?? m.productType].map(cell).join(','),
+          [m.catalogCode, m.genericName, m.brandNames?.[0], m.description ?? [m.strength, m.dosageForm].filter(Boolean).join(' '), m.country, m.orderUnit, m.dispenseUnit, m.unitsPerPack == null ? '' : String(m.unitsPerPack), m.therapeuticCategory].map(cell).join(','),
         ),
       )
       .join('\n');
@@ -213,24 +213,27 @@ export default function ItemTemplatesPage() {
               <th className="w-10 px-4 py-3">
                 <input ref={headerBox} type="checkbox" aria-label="Select all shown" checked={allShown} disabled={items.length === 0} onChange={toggleShown} className="h-4 w-4 accent-indigo-500" />
               </th>
-              {['Name', 'Strength', 'Form', 'Brand', 'Type', 'Category', ''].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}
+              {['Code', 'Name', 'Brand', 'Description', 'Country', 'Order Unit', 'Dispense Unit', 'Factor', 'Tag', ''].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800 text-slate-200">
-            {isLoading && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
-            {!isLoading && items.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
+            {isLoading && <tr><td colSpan={12} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
+            {!isLoading && items.length === 0 && <tr><td colSpan={12} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
             {items.map((m, index) => (
               <tr key={m.id} className={picked[m.id] ? 'bg-indigo-500/5' : ''}>
                 <td className="px-4 py-2.5 text-slate-500">{(page - 1) * pageSize + index + 1}</td>
                 <td className="px-4 py-2.5">
                   <input type="checkbox" aria-label={`Select ${m.genericName}`} checked={Boolean(picked[m.id])} onChange={() => toggle(m)} className="h-4 w-4 accent-indigo-500" />
                 </td>
+                <td className="px-4 py-2.5 tabular-nums">{m.catalogCode ?? '—'}</td>
                 <td className="px-4 py-2.5 font-medium">{m.genericName}</td>
-                <td className="px-4 py-2.5">{m.strength ?? '—'}</td>
-                <td className="px-4 py-2.5">{m.dosageForm ?? '—'}</td>
-                <td className="px-4 py-2.5">{m.brandNames?.[0] ?? '—'}</td>
-                <td className="px-4 py-2.5">{TYPES.find((t) => t.value === m.productType)?.label ?? m.productType}</td>
-                <td className="px-4 py-2.5">{m.therapeuticCategory ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.brandNames?.join(', ') || '—'}</td>
+                <td className="px-4 py-2.5">{m.description ?? ([m.strength, m.dosageForm].filter(Boolean).join(' ') || '—')}</td>
+                <td className="px-4 py-2.5">{m.country || '—'}</td>
+                <td className="px-4 py-2.5">{m.orderUnit ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.dispenseUnit ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.unitsPerPack ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.therapeuticCategory ?? 'No tag'}</td>
                 <td className="px-4 py-2.5 text-right">
                   <button onClick={() => openEdit(m)} aria-label={`Edit ${m.genericName}`} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><Pencil className="h-4 w-4" /></button>
                 </td>
