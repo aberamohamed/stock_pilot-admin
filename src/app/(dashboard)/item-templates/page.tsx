@@ -27,6 +27,7 @@ export default function ItemTemplatesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
+  const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [dialog, setDialog] = useState<'add' | 'import' | null>(null);
@@ -40,9 +41,11 @@ export default function ItemTemplatesPage() {
   const [result, setResult] = useState<Awaited<ReturnType<typeof api.importItemTemplates>> | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['item-templates', search, type, page, pageSize],
-    queryFn: () => api.listMedicines({ search: search || undefined, productType: type || undefined, limit: pageSize, offset: (page - 1) * pageSize }),
+    queryKey: ['item-templates', search, type, category, page, pageSize],
+    queryFn: () => api.listMedicines({ search: search || undefined, productType: type || undefined, category: category || undefined, limit: pageSize, offset: (page - 1) * pageSize }),
   });
+  // The category filter belongs to medicines: the categories the catalog's medicines actually use.
+  const categories = useQuery({ queryKey: ['item-templates', 'categories'], queryFn: api.medicineCategoryValues, enabled: type === 'MEDICINE' });
   const items = data?.data ?? [];
   const total = data?.meta.total ?? 0;
   // Ticked items stay ticked while paging, searching or filtering.
@@ -77,7 +80,7 @@ export default function ItemTemplatesPage() {
     try {
       const found: MedicineSummary[] = [];
       for (let offset = 0; offset < Math.min(total, 5000); offset += 500) {
-        const r = await api.listMedicines({ search: search || undefined, productType: type || undefined, limit: 500, offset });
+        const r = await api.listMedicines({ search: search || undefined, productType: type || undefined, category: category || undefined, limit: 500, offset });
         found.push(...r.data);
       }
       setPicked((prev) => ({ ...prev, ...Object.fromEntries(found.map((m) => [m.id, m])) }));
@@ -190,16 +193,23 @@ export default function ItemTemplatesPage() {
         {pickedList.length > 0 && (
           <button onClick={() => setPicked({})} className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white">Clear selection</button>
         )}
-        <select className={`${input} w-44`} value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}>
+        <select className={`${input} w-44`} value={type} onChange={(e) => { setType(e.target.value); setCategory(''); setPage(1); }}>
           <option value="">All types</option>
           {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
+        {type === 'MEDICINE' && (
+          <select aria-label="Medicine category" className={`${input} w-56`} value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">All categories</option>
+            {(categories.data ?? []).map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-800 text-xs uppercase text-slate-500">
             <tr>
+              <th className="w-12 px-4 py-3 font-semibold">#</th>
               <th className="w-10 px-4 py-3">
                 <input ref={headerBox} type="checkbox" aria-label="Select all shown" checked={allShown} disabled={items.length === 0} onChange={toggleShown} className="h-4 w-4 accent-indigo-500" />
               </th>
@@ -207,10 +217,11 @@ export default function ItemTemplatesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800 text-slate-200">
-            {isLoading && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
-            {!isLoading && items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
-            {items.map((m) => (
+            {isLoading && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
+            {!isLoading && items.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
+            {items.map((m, index) => (
               <tr key={m.id} className={picked[m.id] ? 'bg-indigo-500/5' : ''}>
+                <td className="px-4 py-2.5 text-slate-500">{(page - 1) * pageSize + index + 1}</td>
                 <td className="px-4 py-2.5">
                   <input type="checkbox" aria-label={`Select ${m.genericName}`} checked={Boolean(picked[m.id])} onChange={() => toggle(m)} className="h-4 w-4 accent-indigo-500" />
                 </td>
@@ -268,7 +279,7 @@ export default function ItemTemplatesPage() {
                   <input type="file" accept=".xlsx,.csv" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); setError(null); }} />
                 </label>
                 <p className="text-xs text-slate-500">
-                  Columns read: Code, SCTID, Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Order Unit, Dispense Unit, Factor, Supplier/Manufacturer. Up to 2,000 rows are imported at a time; the rest come back as a file to import next. Items already in the catalog get the new brand, codes and units added. Samples:{' '}
+                  Columns read: Code, SCTID, Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Order Unit, Dispense Unit, Factor, Supplier/Manufacturer. There is no file size limit, since this is a one-time load. 2,000 rows are imported per request; the rest come back as a file to download and import next. Items already in the catalog get the new brand, codes and units added. Samples:{' '}
                   {TYPES.map((t) => (
                     <span key={t.value} className="mr-2 inline-flex items-center gap-1">
                       <Download className="h-3 w-3" />{t.label}{' '}

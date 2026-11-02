@@ -348,6 +348,8 @@ export const adminApi = {
   },
 
   // Master Medicines
+  medicineCategoryValues: () => request<string[]>('/medicines/category-values'),
+
   listMedicines: async (params?: {
     search?: string;
     category?: string;
