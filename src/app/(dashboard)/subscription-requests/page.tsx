@@ -20,10 +20,11 @@ import {
 } from 'lucide-react';
 
 /** What a payment is for, naming the branch or user that was created and is waiting for it. */
-function describeRequest(req: { kind: string; quantity: number; branchName?: string | null; userName?: string | null }): string {
-  if (req.kind === 'activation') return 'First payment';
-  if (req.kind === 'renewal') return `Renewal${req.branchName ? ` · ${req.branchName}` : ''}`;
-  if (req.kind === 'branch' && req.branchName) return `New branch: ${req.branchName}`;
+function describeRequest(req: { kind: string; quantity: number; months?: number; branchName?: string | null; userName?: string | null }): string {
+  const months = req.months && req.months > 1 ? ` · ${req.months} months` : '';
+  if (req.kind === 'activation') return `First payment${months}`;
+  if (req.kind === 'renewal') return `Renewal${req.branchName ? ` · ${req.branchName}` : ''}${months}`;
+  if (req.kind === 'branch' && req.branchName) return `New branch: ${req.branchName}${months}`;
   if (req.kind === 'user' && req.userName) return `New user: ${req.userName}${req.branchName ? ` · ${req.branchName}` : ''}`;
   return `${req.quantity} × ${req.kind}${req.branchName ? ` · ${req.branchName}` : ''}`;
 }

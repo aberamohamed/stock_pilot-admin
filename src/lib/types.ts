@@ -144,6 +144,8 @@ export interface SubscriptionUpgradeRequest {
   /** activation: the first payment; renewal: every seat for another period; branch / user: more seats. */
   kind: 'activation' | 'renewal' | 'branch' | 'user';
   quantity: number;
+  /** Months of access the payment buys. */
+  months?: number;
   amount: number;
   /** The branch a renewal or an extra user is for. */
   branchId: string | null;
