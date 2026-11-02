@@ -282,7 +282,7 @@ export default function ItemTemplatesPage() {
                   <input type="file" accept=".xlsx,.csv" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); setError(null); }} />
                 </label>
                 <p className="text-xs text-slate-500">
-                  Columns read: Code, SCTID, Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Order Unit, Dispense Unit, Factor, Supplier/Manufacturer. There is no file size limit, since this is a one-time load. 2,000 rows are imported per request; the rest come back as a file to download and import next. Items already in the catalog get the new brand, codes and units added. Samples:{' '}
+                  Columns read: Code, SCTID, Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Order Unit, Dispense Unit, Factor, Supplier/Manufacturer. There is no file size limit, since this is a one-time load. 2,000 rows are imported per request; the rest come back as a file to download and import next. An item is identified by its Code, not its name: a Code already in the catalog is skipped, and any other Code is added as its own item, even when the name and brand match another row. Samples:{' '}
                   {TYPES.map((t) => (
                     <span key={t.value} className="mr-2 inline-flex items-center gap-1">
                       <Download className="h-3 w-3" />{t.label}{' '}
@@ -295,8 +295,8 @@ export default function ItemTemplatesPage() {
                 {result && (
                   <div className="space-y-2">
                     <p className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-300">
-                      {result.imported} new item{result.imported === 1 ? '' : 's'} added from {result.total} rows; {result.skipped} were already in the catalog
-                      {result.brandsAdded ? ` (${result.brandsAdded} new brands, codes and units were added to them)` : ''}.
+                      {result.imported} new item{result.imported === 1 ? '' : 's'} added from {result.total} rows
+                      {result.skipped ? `; ${result.skipped} skipped because their Code is already in the catalog` : ''}.
                     </p>
                     {result.remaining && (
                       <div className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-200">
