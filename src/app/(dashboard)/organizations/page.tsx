@@ -18,7 +18,53 @@ import {
   Calendar,
   Pill,
   ShoppingBag,
+  Plus,
 } from 'lucide-react';
+
+const field = 'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none';
+const fieldLabel = 'mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-400';
+const emptyOnboard = { name: '', phone: '', address: '', ownerName: '', ownerEmail: '', password: '', referralCode: '' };
+
+function OnboardModal({ onClose, onDone }: { onClose: () => void; onDone: (organizationId: string) => void }) {
+  const [form, setForm] = useState(emptyOnboard);
+  const [error, setError] = useState<string | null>(null);
+  const save = useMutation({
+    mutationFn: () => adminApi.onboardPharmacy(form),
+    onSuccess: (r) => onDone(r.organizationId),
+    onError: (e: Error) => setError(e.message),
+  });
+  const set = (k: keyof typeof emptyOnboard) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <form
+        className="grid w-full max-w-xl gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:grid-cols-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setError(null);
+          save.mutate();
+        }}
+      >
+        <div className="flex items-center justify-between sm:col-span-2">
+          <h3 className="text-lg font-bold text-white">Onboard a pharmacy</h3>
+          <button type="button" onClick={onClose} className="text-slate-400"><X className="h-5 w-5" /></button>
+        </div>
+        <div><span className={fieldLabel}>Pharmacy name</span><input className={field} value={form.name} onChange={set('name')} required /></div>
+        <div><span className={fieldLabel}>Pharmacy phone</span><input className={field} value={form.phone} onChange={set('phone')} placeholder="0911…" required /></div>
+        <div className="sm:col-span-2"><span className={fieldLabel}>Address</span><input className={field} value={form.address} onChange={set('address')} /></div>
+        <div><span className={fieldLabel}>Owner name</span><input className={field} value={form.ownerName} onChange={set('ownerName')} required /></div>
+        <div><span className={fieldLabel}>Owner email (optional)</span><input className={field} type="email" value={form.ownerEmail} onChange={set('ownerEmail')} /></div>
+        <div><span className={fieldLabel}>Owner PIN / password</span><input className={field} type="password" minLength={4} value={form.password} onChange={set('password')} required /></div>
+        <div><span className={fieldLabel}>Sales reference code (optional)</span><input className={field} inputMode="numeric" maxLength={6} value={form.referralCode} onChange={set('referralCode')} placeholder="6 digits" /></div>
+        <p className="text-xs text-slate-400 sm:col-span-2">The owner signs in on the phone with the pharmacy phone number and this PIN. The pharmacy still needs its first seat payment approved before it can work.</p>
+        {error ? <p className="text-sm text-red-400 sm:col-span-2">{error}</p> : null}
+        <div className="flex gap-2 sm:col-span-2">
+          <button className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={save.isPending}>{save.isPending ? 'Creating…' : 'Create pharmacy'}</button>
+          <button type="button" onClick={onClose} className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200">Cancel</button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 export default function OrganizationsPage() {
   const queryClient = useQueryClient();
@@ -31,6 +77,7 @@ export default function OrganizationsPage() {
   // Selected organization for right table
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<OrganizationSummary | null>(null);
+  const [onboarding, setOnboarding] = useState(false);
 
   // Query: Organizations list
   const { data, isLoading } = useQuery({
@@ -105,7 +152,24 @@ export default function OrganizationsPage() {
             Click any organization on the left to inspect its branch network, physical locations, and inventory counts.
           </p>
         </div>
+        <button
+          onClick={() => setOnboarding(true)}
+          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500"
+        >
+          <Plus className="h-4 w-4" /> Onboard pharmacy
+        </button>
       </div>
+      {onboarding ? (
+        <OnboardModal
+          onClose={() => setOnboarding(false)}
+          onDone={(id) => {
+            setOnboarding(false);
+            setSelectedOrgId(id);
+            void queryClient.invalidateQueries({ queryKey: ['organizations'] });
+            void queryClient.invalidateQueries({ queryKey: ['analytics'] });
+          }}
+        />
+      ) : null}
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80">

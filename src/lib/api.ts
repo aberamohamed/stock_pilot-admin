@@ -4,6 +4,7 @@ import {
   PaymentVerificationSettings,
   AdminBroadcast,
   PermissionInfo,
+  PlatformAdminAccount,
   RoleDefinitionInfo,
   SalesAgent,
   SalesAgentDetail,
@@ -297,6 +298,15 @@ export const adminApi = {
   getPermissions: () => request<{ permissions: PermissionInfo[]; roles: RoleDefinitionInfo[] }>('/permissions'),
 
   // Sales agents (referral commission)
+  onboardPharmacy: (input: { name: string; phone: string; address: string; ownerName: string; ownerEmail: string; password: string; referralCode: string }) =>
+    request<{ organizationId: string }>('/organizations/onboard', { method: 'POST', body: JSON.stringify(input) }),
+
+  listAdmins: () => request<PlatformAdminAccount[]>('/admins'),
+  createAdmin: (input: { name: string; email: string; password: string }) =>
+    request<PlatformAdminAccount>('/admins', { method: 'POST', body: JSON.stringify(input) }),
+  updateAdmin: (id: string, input: { name?: string; isActive?: boolean; password?: string }) =>
+    request<PlatformAdminAccount>(`/admins/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+
   listSalesAgents: () => request<SalesAgent[]>('/sales-agents'),
   createSalesAgent: (input: SalesAgentInput) =>
     request<SalesAgent>('/sales-agents', { method: 'POST', body: JSON.stringify(input) }),
