@@ -392,3 +392,13 @@ export interface SalesAgentDetail {
     organizationName: string;
   }>;
 }
+
+export interface PlatformAdminAccount {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  createdBy: string | null;
+  createdAt: string;
+  lastLoginAt: string | null;
+}

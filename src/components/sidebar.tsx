@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Sparkles,
   Handshake,
+  UserCog,
   KeyRound,
   Bell,
   LogOut,
@@ -99,6 +100,12 @@ const navItems = [
     name: 'Roles & permissions',
     href: '/permissions',
     icon: KeyRound,
+    badge: null,
+  },
+  {
+    name: 'Admins',
+    href: '/admins',
+    icon: UserCog,
     badge: null,
   },
   {
