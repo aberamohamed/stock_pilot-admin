@@ -144,6 +144,8 @@ export interface SubscriptionUpgradeRequest {
   /** activation: the first payment; renewal: every seat for another period; branch / user: more seats. */
   kind: 'activation' | 'renewal' | 'branch' | 'user';
   quantity: number;
+  /** Months of access the payment buys. */
+  months?: number;
   amount: number;
   /** The branch a renewal or an extra user is for. */
   branchId: string | null;
@@ -214,6 +216,12 @@ export interface MedicineSummary {
   updatedAt: string;
   /** "product" is one strength and form; "generic" is the parent name. */
   catalogLevel?: 'generic' | 'product';
+  /** The Excel form: Code, Description (strength and form together), units and Factor; the Tag is `therapeuticCategory`. */
+  catalogCode?: string | null;
+  description?: string | null;
+  orderUnit?: string | null;
+  dispenseUnit?: string | null;
+  unitsPerPack?: number | null;
   strength?: string | null;
   dosageForm?: string | null;
 }
@@ -298,6 +306,36 @@ export interface BillingSettingsChange extends BillingSettings {
   previousUsersPerBranch: number;
   previousPeriodDays: number | null;
   previousFirstPaymentBonusDays: number | null;
+}
+
+export interface PermissionInfo {
+  key: string;
+  group: string;
+  label: string;
+  description: string;
+}
+
+export interface RoleDefinitionInfo {
+  key: string;
+  name: string;
+  description: string;
+  orgWide: boolean;
+  locked: boolean;
+  defaults: string[];
+}
+
+export interface AdminBroadcast {
+  id: string;
+  title: string;
+  body: string;
+  audience: 'all' | 'selected';
+  recipientCount: number;
+  deviceCount: number;
+  pushSent: number;
+  pushFailed: number;
+  status: 'sending' | 'sent';
+  createdBy: string;
+  createdAt: string;
 }
 
 export interface SalesAgent {

@@ -2,6 +2,9 @@ import {
   AdminUser,
   BillingSettings,
   PaymentVerificationSettings,
+  AdminBroadcast,
+  PermissionInfo,
+  RoleDefinitionInfo,
   SalesAgent,
   SalesAgentDetail,
   SalesAgentInput,
@@ -20,7 +23,7 @@ import {
 } from './types';
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'https://api1.hibrethub.com/api/v1/platform-admin';
+  process.env.NEXT_PUBLIC_API_URL || 'https://api.nexeaura.com/api/v1/platform-admin';
 
 export class ApiError extends Error {
   code: string;
@@ -126,9 +129,20 @@ async function requestBody(endpoint: string, options: RequestInit = {}): Promise
     }
   }
 
-  const body = await response.json().catch(() => ({}));
+  const raw = await response.text();
+  let body: any = {};
+  try {
+    body = raw ? JSON.parse(raw) : {};
+  } catch {
+    body = {};
+  }
   if (!response.ok) {
-    throw new ApiError(response.status, body.error?.code || 'UNKNOWN_ERROR', body.error?.message || response.statusText || 'Request failed');
+    // A proxy in front of the API (nginx) answers a too-large upload with a web page, not JSON: say what happened.
+    const fallback =
+      response.status === 413
+        ? 'The server refused this upload because it is too large (413 Content Too Large). Ask support to raise the server\'s upload limit (nginx client_max_body_size), or split the file into smaller parts.'
+        : response.statusText || (raw && !raw.trim().startsWith('<') ? raw.trim().slice(0, 300) : '') || `Request failed (${response.status})`;
+    throw new ApiError(response.status, body.error?.code || (response.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'UNKNOWN_ERROR'), body.error?.message || fallback);
   }
   return body;
 }
@@ -273,6 +287,15 @@ export const adminApi = {
   updatePaymentVerification: (settings: PaymentVerificationSettings) =>
     request<PaymentVerificationSettings>('/payment-verification', { method: 'PUT', body: JSON.stringify(settings) }),
 
+  // Notifications sent to users from the admin panel
+  listBroadcasts: () => request<AdminBroadcast[]>('/notifications'),
+  sendBroadcast: (input: { title: string; body: string; audience: 'all' | 'selected'; userIds: string[] }) =>
+    request<{ id: string; recipients: number; devices: number }>('/notifications', { method: 'POST', body: JSON.stringify(input) }),
+  broadcastRecipients: (id: string) =>
+    request<Array<{ id: string; name: string; mobile: string | null; organizationName: string }>>(`/notifications/${id}/recipients`),
+
+  getPermissions: () => request<{ permissions: PermissionInfo[]; roles: RoleDefinitionInfo[] }>('/permissions'),
+
   // Sales agents (referral commission)
   listSalesAgents: () => request<SalesAgent[]>('/sales-agents'),
   createSalesAgent: (input: SalesAgentInput) =>
@@ -325,6 +348,8 @@ export const adminApi = {
   },
 
   // Master Medicines
+  medicineCategoryValues: () => request<string[]>('/medicines/category-values'),
+
   listMedicines: async (params?: {
     search?: string;
     category?: string;
@@ -382,7 +407,7 @@ export const adminApi = {
 
   /** Bulk-adds catalog items from an .xlsx/.csv file; rows already in the catalog are skipped. */
   importItemTemplates: (input: { fileName: string; base64: string; defaultType: string }) =>
-    request<{ total: number; imported: number; skipped: number }>('/medicines/import', {
+    request<{ total: number; imported: number; skipped: number; brandsAdded?: number; remaining?: { count: number; fileName: string; mimeType: string; base64: string } }>('/medicines/import', {
       method: 'POST',
       body: JSON.stringify(input),
     }),

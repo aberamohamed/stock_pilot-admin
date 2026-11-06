@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileSpreadsheet, Pencil, Plus, Search, Upload, X } from 'lucide-react';
 import { Pagination } from '@/components/pagination';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import type { MedicineSummary } from '@/lib/types';
 
 const TYPES = [
@@ -27,6 +27,7 @@ export default function ItemTemplatesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
+  const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [dialog, setDialog] = useState<'add' | 'import' | null>(null);
@@ -37,14 +38,72 @@ export default function ItemTemplatesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [importType, setImportType] = useState('MEDICINE');
-  const [result, setResult] = useState<{ total: number; imported: number; skipped: number } | null>(null);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof api.importItemTemplates>> | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['item-templates', search, type, page, pageSize],
-    queryFn: () => api.listMedicines({ search: search || undefined, productType: type || undefined, limit: pageSize, offset: (page - 1) * pageSize }),
+    queryKey: ['item-templates', search, type, category, page, pageSize],
+    queryFn: () => api.listMedicines({ search: search || undefined, productType: type || undefined, category: category || undefined, limit: pageSize, offset: (page - 1) * pageSize }),
   });
+  // The category filter belongs to medicines: the categories the catalog's medicines actually use.
+  const categories = useQuery({ queryKey: ['item-templates', 'categories'], queryFn: api.medicineCategoryValues, enabled: type === 'MEDICINE' });
   const items = data?.data ?? [];
   const total = data?.meta.total ?? 0;
+  // Ticked items stay ticked while paging, searching or filtering.
+  const [picked, setPicked] = useState<Record<string, MedicineSummary>>({});
+  const [selecting, setSelecting] = useState(false);
+  const pickedList = Object.values(picked);
+  const allShown = items.length > 0 && items.every((m) => picked[m.id]);
+  const someShown = items.some((m) => picked[m.id]);
+  const headerBox = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (headerBox.current) headerBox.current.indeterminate = someShown && !allShown;
+  }, [someShown, allShown]);
+  const toggle = (m: MedicineSummary) =>
+    setPicked((prev) => {
+      const next = { ...prev };
+      if (next[m.id]) delete next[m.id];
+      else next[m.id] = m;
+      return next;
+    });
+  const toggleShown = () =>
+    setPicked((prev) => {
+      const next = { ...prev };
+      for (const m of items) {
+        if (allShown) delete next[m.id];
+        else next[m.id] = m;
+      }
+      return next;
+    });
+  // Every item matching the search and type, not only this page (500 at a time).
+  const selectEveryMatch = async () => {
+    setSelecting(true);
+    try {
+      const found: MedicineSummary[] = [];
+      for (let offset = 0; offset < Math.min(total, 5000); offset += 500) {
+        const r = await api.listMedicines({ search: search || undefined, productType: type || undefined, category: category || undefined, limit: 500, offset });
+        found.push(...r.data);
+      }
+      setPicked((prev) => ({ ...prev, ...Object.fromEntries(found.map((m) => [m.id, m])) }));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSelecting(false);
+    }
+  };
+  const downloadCsv = () => {
+    const cell = (v: string | null | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
+    const csv = ['Code,Name,Brand,Description,Country,Order Unit,Dispense Unit,Factor,Tags']
+      .concat(
+        pickedList.map((m) =>
+          [m.catalogCode, m.genericName, m.brandNames?.[0], m.description ?? [m.strength, m.dosageForm].filter(Boolean).join(' '), m.country, m.orderUnit, m.dispenseUnit, m.unitsPerPack == null ? '' : String(m.unitsPerPack), m.therapeuticCategory].map(cell).join(','),
+        ),
+      )
+      .join('\n');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    link.download = `item-templates-${pickedList.length}-items.csv`;
+    link.click();
+  };
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['item-templates'] });
 
   const closeDialog = () => {
@@ -99,7 +158,8 @@ export default function ItemTemplatesPage() {
       setResult(r);
       refresh();
     },
-    onError: (e: Error) => setError(e.message),
+    // The exact error: what the server said, with its status and code.
+    onError: (e: Error) => setError(e instanceof ApiError ? `Import failed (${e.status} ${e.code}): ${e.message}` : e.message),
   });
 
   return (
@@ -109,7 +169,10 @@ export default function ItemTemplatesPage() {
           <h1 className="text-2xl font-bold text-white">Item Templates</h1>
           <p className="text-sm text-slate-400">The shared catalog pharmacies pick items from. Add one by hand or import an Excel or CSV file.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={downloadCsv} disabled={pickedList.length === 0} className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+            <Download className="h-4 w-4" /> Download selected ({pickedList.length})
+          </button>
           <button onClick={() => setDialog('import')} className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800">
             <Upload className="h-4 w-4" /> Import Excel / CSV
           </button>
@@ -124,28 +187,53 @@ export default function ItemTemplatesPage() {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
           <input className={`${input} pl-9`} placeholder="Search name or brand" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
-        <select className={`${input} w-44`} value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}>
+        <button onClick={() => void selectEveryMatch()} disabled={selecting || total === 0} className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+          {selecting ? 'Selecting…' : `Select all matching (${total})`}
+        </button>
+        {pickedList.length > 0 && (
+          <button onClick={() => setPicked({})} className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white">Clear selection</button>
+        )}
+        <select className={`${input} w-44`} value={type} onChange={(e) => { setType(e.target.value); setCategory(''); setPage(1); }}>
           <option value="">All types</option>
           {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
+        {type === 'MEDICINE' && (
+          <select aria-label="Medicine category" className={`${input} w-56`} value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">All categories</option>
+            {(categories.data ?? []).map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-800 text-xs uppercase text-slate-500">
-            <tr>{['Name', 'Strength', 'Form', 'Brand', 'Type', 'Category', ''].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}</tr>
+            <tr>
+              <th className="w-12 px-4 py-3 font-semibold">#</th>
+              <th className="w-10 px-4 py-3">
+                <input ref={headerBox} type="checkbox" aria-label="Select all shown" checked={allShown} disabled={items.length === 0} onChange={toggleShown} className="h-4 w-4 accent-indigo-500" />
+              </th>
+              {['Code', 'Name', 'Brand', 'Description', 'Country', 'Order Unit', 'Dispense Unit', 'Factor', 'Tag', ''].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}
+            </tr>
           </thead>
           <tbody className="divide-y divide-slate-800 text-slate-200">
-            {isLoading && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
-            {!isLoading && items.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
-            {items.map((m) => (
-              <tr key={m.id}>
+            {isLoading && <tr><td colSpan={12} className="px-4 py-8 text-center text-slate-500">Loading…</td></tr>}
+            {!isLoading && items.length === 0 && <tr><td colSpan={12} className="px-4 py-8 text-center text-slate-500">No items yet. Add one or import a file.</td></tr>}
+            {items.map((m, index) => (
+              <tr key={m.id} className={picked[m.id] ? 'bg-indigo-500/5' : ''}>
+                <td className="px-4 py-2.5 text-slate-500">{(page - 1) * pageSize + index + 1}</td>
+                <td className="px-4 py-2.5">
+                  <input type="checkbox" aria-label={`Select ${m.genericName}`} checked={Boolean(picked[m.id])} onChange={() => toggle(m)} className="h-4 w-4 accent-indigo-500" />
+                </td>
+                <td className="px-4 py-2.5 tabular-nums">{m.catalogCode ?? '—'}</td>
                 <td className="px-4 py-2.5 font-medium">{m.genericName}</td>
-                <td className="px-4 py-2.5">{m.strength ?? '—'}</td>
-                <td className="px-4 py-2.5">{m.dosageForm ?? '—'}</td>
-                <td className="px-4 py-2.5">{m.brandNames?.[0] ?? '—'}</td>
-                <td className="px-4 py-2.5">{TYPES.find((t) => t.value === m.productType)?.label ?? m.productType}</td>
-                <td className="px-4 py-2.5">{m.therapeuticCategory ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.brandNames?.join(', ') || '—'}</td>
+                <td className="px-4 py-2.5">{m.description ?? ([m.strength, m.dosageForm].filter(Boolean).join(' ') || '—')}</td>
+                <td className="px-4 py-2.5">{m.country || '—'}</td>
+                <td className="px-4 py-2.5">{m.orderUnit ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.dispenseUnit ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.unitsPerPack ?? '—'}</td>
+                <td className="px-4 py-2.5">{m.therapeuticCategory ?? 'No tag'}</td>
                 <td className="px-4 py-2.5 text-right">
                   <button onClick={() => openEdit(m)} aria-label={`Edit ${m.genericName}`} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><Pencil className="h-4 w-4" /></button>
                 </td>
@@ -194,7 +282,7 @@ export default function ItemTemplatesPage() {
                   <input type="file" accept=".xlsx,.csv" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); setError(null); }} />
                 </label>
                 <p className="text-xs text-slate-500">
-                  Columns read: Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Supplier/Manufacturer. Items already in the catalog are skipped. Samples:{' '}
+                  Columns read: Code, SCTID, Name, Brand, Description, Strength, Form, Category/Tags, Type, Country, Order Unit, Dispense Unit, Factor, Supplier/Manufacturer. There is no file size limit, since this is a one-time load. 2,000 rows are imported per request; the rest come back as a file to download and import next. An item is identified by its Code, not its name: a Code already in the catalog is skipped, and any other Code is added as its own item, even when the name and brand match another row. Samples:{' '}
                   {TYPES.map((t) => (
                     <span key={t.value} className="mr-2 inline-flex items-center gap-1">
                       <Download className="h-3 w-3" />{t.label}{' '}
@@ -204,7 +292,28 @@ export default function ItemTemplatesPage() {
                   ))}
                 </p>
                 {error && <p className="text-sm text-red-400">{error}</p>}
-                {result && <p className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-300">Imported {result.imported} of {result.total} rows; {result.skipped} already existed.</p>}
+                {result && (
+                  <div className="space-y-2">
+                    <p className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-300">
+                      {result.imported} new item{result.imported === 1 ? '' : 's'} added from {result.total} rows
+                      {result.skipped ? `; ${result.skipped} skipped because their Code is already in the catalog` : ''}.
+                    </p>
+                    {result.remaining && (
+                      <div className="rounded-lg bg-amber-500/10 p-3 text-sm text-amber-200">
+                        <p>
+                          Only the first 2,000 rows are imported at a time. The other {result.remaining.count} rows are in a file: download it and import it next.
+                        </p>
+                        <a
+                          className="mt-2 inline-flex items-center gap-1 text-indigo-300 underline"
+                          href={`data:${result.remaining.mimeType};base64,${result.remaining.base64}`}
+                          download={result.remaining.fileName}
+                        >
+                          <Download className="h-3 w-3" /> Download the remaining {result.remaining.count} rows
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button disabled={!file || upload.isPending} onClick={() => { setError(null); upload.mutate(); }} className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white disabled:opacity-50">{upload.isPending ? 'Importing…' : 'Import'}</button>
               </div>
             )}
