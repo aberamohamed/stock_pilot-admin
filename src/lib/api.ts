@@ -23,7 +23,7 @@ import {
 } from './types';
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'https://api1.hibrethub.com/api/v1/platform-admin';
+  process.env.NEXT_PUBLIC_API_URL || 'https://api.nexeaura.com/api/v1/platform-admin';
 
 export class ApiError extends Error {
   code: string;
