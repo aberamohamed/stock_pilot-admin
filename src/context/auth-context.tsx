@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await adminApi.login(email, password);
-    setAdmin({ email: res.email, role: 'super_admin' });
+    setAdmin({ email: res.email, role: res.role as AdminUser['role'] });
     router.push('/');
   };
 
