@@ -1,8 +1,62 @@
 @import "tailwindcss";
 
+/*
+ * The admin panel wears the same brand as the web app: white surfaces, near-black text and green.
+ * The pages were written against Tailwind's dark slate/indigo palette, so instead of editing every
+ * class the palette itself is re-pointed here: slate runs the other way round (light surfaces, dark
+ * text), and indigo/violet (the old accent) become the brand green (#0f766e, the web's primary).
+ * Un-layered rules beat Tailwind's layers, so these win without !important.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand: #0f766e;
+  --brand-hover: #115e59;
+  --ink: #0f172a;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  /* slate: dark UI classes become light surfaces and dark text */
+  --color-slate-50: #0f172a;
+  --color-slate-100: #0f172a;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;
+  --color-slate-600: #94a3b8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #ffffff;
+  --color-slate-950: #f8fafc;
+
+  /* the accent: brand green */
+  --color-indigo-100: #ccfbf1;
+  --color-indigo-200: #99f6e4;
+  --color-indigo-300: #0f766e;
+  --color-indigo-400: #0f766e;
+  --color-indigo-500: #0f766e;
+  --color-indigo-600: #0f766e;
+  --color-indigo-700: #115e59;
+  --color-indigo-800: #115e59;
+  --color-indigo-900: #134e4a;
+  --color-indigo-950: #042f2e;
+  --color-violet-300: #0f766e;
+  --color-violet-400: #0f766e;
+  --color-violet-500: #14b8a6;
+  --color-violet-600: #0d9488;
+  --color-purple-600: #0d9488;
+  --color-blue-400: #0f766e;
+  --color-blue-500: #0f766e;
+  --color-blue-600: #115e59;
+
+  /* status text was pale for dark backgrounds: darker so it reads on white */
+  --color-emerald-300: #047857;
+  --color-emerald-400: #047857;
+  --color-red-300: #b91c1c;
+  --color-red-400: #b91c1c;
+  --color-rose-300: #be123c;
+  --color-rose-400: #be123c;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+  --color-amber-400: #b45309;
 }
 
 @theme inline {
@@ -12,15 +66,38 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Headings and values written in white for the dark UI are now near-black... */
+.text-white,
+.hover\:text-white:hover {
+  color: var(--ink);
+}
+/* ...except on a coloured button, badge or bar, where white is still right. */
+:is(
+    .bg-indigo-500, .bg-indigo-600, .bg-violet-500, .bg-violet-600, .bg-emerald-500, .bg-emerald-600,
+    .bg-red-500, .bg-red-600, .bg-rose-500, .bg-rose-600, .bg-amber-500, .bg-amber-600, .bg-blue-500, .bg-purple-600
+  ).text-white,
+:is(
+    .bg-indigo-500, .bg-indigo-600, .bg-violet-500, .bg-violet-600, .bg-emerald-500, .bg-emerald-600,
+    .bg-red-500, .bg-red-600, .bg-rose-500, .bg-rose-600, .bg-amber-500, .bg-amber-600, .bg-blue-500, .bg-purple-600
+  ) .text-white,
+[class*="bg-gradient"] .text-white,
+[class*="bg-gradient"].text-white {
+  color: #ffffff;
+}
+
+/* No shadows anywhere (same as the web app). */
+[class*="shadow"] {
+  box-shadow: none !important;
+}
+
+/* A visible keyboard focus in the brand colour. */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
