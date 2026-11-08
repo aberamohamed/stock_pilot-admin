@@ -1,6 +1,28 @@
+export type AdminRole = 'super_admin' | 'finance' | 'support' | 'catalog';
+
 export interface AdminUser {
   email: string;
-  role: 'super_admin';
+  role: AdminRole;
+}
+
+export interface AdminRoleInfo {
+  key: AdminRole;
+  name: string;
+  description: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  adminEmail: string;
+  adminName: string | null;
+  summary: string;
+  method: string | null;
+  path: string | null;
+  entityId: string | null;
+  status: number | null;
+  details: Record<string, unknown> | null;
+  ip: string | null;
+  createdAt: string;
 }
 
 export interface PlatformAnalytics {
@@ -397,6 +419,7 @@ export interface PlatformAdminAccount {
   id: string;
   name: string;
   email: string;
+  role: AdminRole;
   isActive: boolean;
   createdBy: string | null;
   createdAt: string;

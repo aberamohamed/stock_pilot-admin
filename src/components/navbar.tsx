@@ -17,6 +17,7 @@ const routeTitles: Record<string, { title: string; subtitle: string }> = {
   '/pricing': { title: 'Pricing', subtitle: 'What a branch and an extra user cost, and the users each branch includes' },
   '/categories': { title: 'Medicine Categories', subtitle: 'National therapeutic drug categories and sorting' },
   '/medicines': { title: 'Master Medicines', subtitle: 'EFDA regulatory catalog, dosage forms & packaging' },
+  '/audit-log': { title: 'Audit log', subtitle: 'Who did what in this admin panel, and when' },
   '/banks': { title: 'Banks & Digital Wallets', subtitle: 'Platform collection accounts & tenant POS payment methods' },
 };
 

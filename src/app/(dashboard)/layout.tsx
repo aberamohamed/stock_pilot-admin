@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { Sidebar } from '@/components/sidebar';
+import { Sidebar, canOpenAdminPage } from '@/components/sidebar';
 import { Navbar } from '@/components/navbar';
 import { Loader2 } from 'lucide-react';
 
@@ -12,8 +12,11 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, admin } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  // The first segment names the page (/organizations/123 is the organizations page).
+  const pageRoot = '/' + (pathname.split('/')[1] ?? '');
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -40,7 +43,12 @@ export default function DashboardLayout({
       <div className="pl-64 flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-1 p-8 overflow-y-auto max-w-7xl w-full mx-auto">
-          {children}
+          {canOpenAdminPage(pageRoot, admin?.role) ? children : (
+            <div className="mx-auto mt-24 max-w-md rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-center">
+              <h2 className="text-lg font-bold text-white">Not available for your role</h2>
+              <p className="mt-1 text-sm text-slate-400">Ask a Super Admin if you need access to this page.</p>
+            </div>
+          )}
         </main>
       </div>
     </div>

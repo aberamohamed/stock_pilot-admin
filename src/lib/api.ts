@@ -1,5 +1,7 @@
 import {
   AdminUser,
+  AdminRoleInfo,
+  AuditEntry,
   BillingSettings,
   PaymentVerificationSettings,
   AdminBroadcast,
@@ -301,10 +303,19 @@ export const adminApi = {
   onboardPharmacy: (input: { name: string; phone: string; address: string; ownerName: string; ownerEmail: string; password: string; referralCode: string }) =>
     request<{ organizationId: string }>('/organizations/onboard', { method: 'POST', body: JSON.stringify(input) }),
 
+  adminRoles: () => request<AdminRoleInfo[]>('/admin-roles'),
+  auditLog: (params: { search?: string; admin?: string; from?: string; to?: string; limit: number; offset: number }) => {
+    const q = new URLSearchParams({ limit: String(params.limit), offset: String(params.offset) });
+    if (params.search) q.set('search', params.search);
+    if (params.admin) q.set('admin', params.admin);
+    if (params.from) q.set('from', params.from);
+    if (params.to) q.set('to', params.to);
+    return request<{ items: AuditEntry[]; total: number }>(`/audit-log?${q.toString()}`);
+  },
   listAdmins: () => request<PlatformAdminAccount[]>('/admins'),
-  createAdmin: (input: { name: string; email: string; password: string }) =>
+  createAdmin: (input: { name: string; email: string; password: string; role: string }) =>
     request<PlatformAdminAccount>('/admins', { method: 'POST', body: JSON.stringify(input) }),
-  updateAdmin: (id: string, input: { name?: string; isActive?: boolean; password?: string }) =>
+  updateAdmin: (id: string, input: { name?: string; isActive?: boolean; password?: string; role?: string }) =>
     request<PlatformAdminAccount>(`/admins/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
 
   listSalesAgents: () => request<SalesAgent[]>('/sales-agents'),

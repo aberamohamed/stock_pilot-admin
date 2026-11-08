@@ -19,9 +19,38 @@ import {
   UserCog,
   KeyRound,
   Bell,
+  ScrollText,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import type { AdminRole } from '@/lib/types';
+
+/** Which roles see which page (the super admin sees all). The server enforces the same rules. */
+export const PAGE_ROLES: Record<string, AdminRole[] | 'all'> = {
+  '/': 'all',
+  '/permissions': 'all',
+  '/users': ['support'],
+  '/organizations': ['support', 'finance'],
+  '/notifications': ['support'],
+  '/subscription-requests': ['finance'],
+  '/pricing': ['finance'],
+  '/banks': ['finance'],
+  '/payment-verification': ['finance'],
+  '/sales-agents': ['finance'],
+  '/categories': ['catalog'],
+  '/medicines': ['catalog'],
+  '/item-templates': ['catalog'],
+  '/catalog-review': ['catalog'],
+  '/admins': [],
+  '/audit-log': [],
+};
+
+export const canOpenAdminPage = (path: string, role: AdminRole | undefined) => {
+  if (!role) return false;
+  if (role === 'super_admin') return true;
+  const allowed = PAGE_ROLES[path];
+  return allowed === undefined || allowed === 'all' || allowed.includes(role);
+};
 
 const navItems = [
   {
@@ -109,6 +138,12 @@ const navItems = [
     badge: null,
   },
   {
+    name: 'Audit log',
+    href: '/audit-log',
+    icon: ScrollText,
+    badge: null,
+  },
+  {
     name: 'Sales agents',
     href: '/sales-agents',
     icon: Handshake,
@@ -143,7 +178,7 @@ export function Sidebar() {
           Management Modules
         </div>
 
-        {navItems.map((item) => {
+        {navItems.filter((item) => canOpenAdminPage(item.href, admin?.role)).map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           const Icon = item.icon;
 
