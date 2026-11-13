@@ -22,7 +22,7 @@ export default function OverviewPage() {
   const { data: analytics, isLoading, error } = useQuery({
     queryKey: ['analytics'],
     queryFn: adminApi.getAnalytics,
-    refetchInterval: 30000, // refresh every 30s
+    refetchInterval: 60000, // refresh every minute (only while the tab is open and visible)
   });
 
   if (isLoading) {
