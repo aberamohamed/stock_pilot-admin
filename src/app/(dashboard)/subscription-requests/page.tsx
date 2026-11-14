@@ -42,7 +42,7 @@ export default function SubscriptionRequestsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['subscription-requests', statusFilter],
     queryFn: () => adminApi.listUpgradeRequests(statusFilter),
-    refetchInterval: 15000, // auto poll every 15s for pending requests
+    refetchInterval: 60000, // refresh every minute while this tab is open and visible (push alerts announce new payments)
   });
 
   // The Verify button: the server checks the Telebirr receipt now; the result is shown under the request.
